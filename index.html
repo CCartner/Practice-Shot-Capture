@@ -1,0 +1,2668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Shot Capture">
+<meta name="theme-color" content="#1a2e4a">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Shot Capture — The Stack</title>
+<link rel="manifest" href='data:application/json,{"name":"Shot Capture","short_name":"Shot Capture","display":"standalone","background_color":"#1a2e4a","theme_color":"#1a2e4a","start_url":"./index.html"}'>
+<style>
+  :root {
+    --navy: #1a2e4a;
+    --navy-mid: #243d60;
+    --accent: #2a7de1;
+    --accent-light: #e8f1fb;
+    --accent-dark: #1a5fb4;
+    --green: #1a8a4a;
+    --green-light: #e6f5ec;
+    --red: #c0392b;
+    --red-light: #fbeae8;
+    --amber: #b86a00;
+    --amber-light: #fef3e2;
+    --surface: #ffffff;
+    --surface-1: #f5f6f8;
+    --surface-2: #eceef2;
+    --border: rgba(0,0,0,0.10);
+    --border-strong: rgba(0,0,0,0.18);
+    --text: #111827;
+    --text-2: #4b5563;
+    --text-3: #9ca3af;
+    --radius: 10px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --navy: #0f1f33;
+      --navy-mid: #1a2e4a;
+      --accent: #4a9eff;
+      --accent-light: #0d2040;
+      --accent-dark: #7ab8ff;
+      --green: #2ecc71;
+      --green-light: #0a2e1a;
+      --red: #e74c3c;
+      --red-light: #2e0f0f;
+      --amber: #f5a623;
+      --amber-light: #2a1e00;
+      --surface: #1c2333;
+      --surface-1: #141b27;
+      --surface-2: #0f1520;
+      --border: rgba(255,255,255,0.10);
+      --border-strong: rgba(255,255,255,0.18);
+      --text: #f0f4f8;
+      --text-2: #9ba8bb;
+      --text-3: #5a6577;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    background: var(--surface-1);
+    color: var(--text);
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .app {
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--surface-1);
+    position: relative;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--navy);
+    padding: calc(var(--safe-top) + 12px) 16px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .topbar-back {
+    background: rgba(255,255,255,0.12);
+    border: none;
+    border-radius: 8px;
+    width: 36px; height: 36px;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .topbar-title { flex: 1; }
+  .topbar-title h1 { font-size: 16px; font-weight: 600; color: #fff; letter-spacing: -.01em; }
+  .topbar-title p { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 1px; }
+  .topbar-pill {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 12px; font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    flex-shrink: 0;
+    min-width: 56px;
+    text-align: center;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── HOME ── */
+  .home-header {
+    background: var(--navy);
+    padding: calc(var(--safe-top) + 16px) 20px 28px;
+  }
+  .home-logo {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .home-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+  }
+  .home-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 4px;
+  }
+  .home-body { padding: 16px; }
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 10px;
+    padding-left: 2px;
+  }
+  .session-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .sess-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 14px 14px;
+    cursor: pointer;
+    transition: transform .1s, box-shadow .1s, border-color .15s;
+    -webkit-user-select: none;
+    text-align: left;
+    width: 100%;
+  }
+  .sess-card:active { transform: scale(0.97); }
+  .sess-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    box-shadow: 0 0 0 3px rgba(42,125,225,0.15);
+  }
+  .sess-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  .sess-name { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.2; }
+  .sess-desc { font-size: 11px; color: var(--text-2); margin-top: 3px; line-height: 1.3; }
+
+  .start-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 600;
+    padding: 15px;
+    cursor: pointer;
+    transition: background .15s, opacity .15s;
+    margin-bottom: calc(var(--safe-bottom) + 16px);
+  }
+  .start-btn:disabled { opacity: .35; cursor: not-allowed; }
+  .start-btn:not(:disabled):active { background: var(--accent-dark); }
+
+  /* ── SESSION CONTENT ── */
+  .session-body {
+    padding: 14px 16px;
+    padding-bottom: calc(var(--safe-bottom) + 80px);
+  }
+
+  /* ── FIELD GROUPS ── */
+  .field { margin-bottom: 16px; }
+  .field-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 7px;
+    display: block;
+  }
+
+  /* ── CHIPS ── */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    padding: 8px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text);
+    transition: all .12s;
+    -webkit-user-select: none;
+  }
+  .chip:active { transform: scale(0.96); }
+  .chip.sel { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .chip.sel-green { background: var(--green); color: #fff; border-color: var(--green); }
+  .chip.sel-red { background: var(--red); color: #fff; border-color: var(--red); }
+
+  /* ── TOGGLE PAIR ── */
+  .toggle-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .toggle-btn {
+    padding: 11px 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text-2);
+    transition: all .12s;
+  }
+  .toggle-btn:active { transform: scale(0.97); }
+  .toggle-btn.on { background: var(--green); color: #fff; border-color: var(--green); }
+  .toggle-btn.off { background: var(--red); color: #fff; border-color: var(--red); }
+
+  /* ── INPUTS ── */
+  .num-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .num-input, .text-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    font-size: 16px;
+    background: var(--surface);
+    color: var(--text);
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .num-input:focus, .text-input:focus { border-color: var(--accent); }
+  .num-input::placeholder, .text-input::placeholder { color: var(--text-3); }
+
+  /* ── LOG BUTTON ── */
+  .log-btn {
+    position: fixed;
+    bottom: calc(var(--safe-bottom) + 12px);
+    left: 50%; transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 398px;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 600;
+    padding: 15px;
+    cursor: pointer;
+    z-index: 40;
+    box-shadow: 0 -1px 0 var(--border), 0 4px 20px rgba(0,0,0,0.18);
+    transition: background .15s;
+  }
+  .log-btn:active { background: var(--navy-mid); }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0 16px; }
+
+  /* ── SHOT LOG ── */
+  .log-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .log-title { font-size: 13px; font-weight: 600; color: var(--text-2); }
+  .clear-btn { font-size: 12px; color: var(--red); background: none; border: none; cursor: pointer; font-weight: 500; padding: 2px 4px; }
+
+  .shot-list { display: flex; flex-direction:column; gap: 6px; }
+  .shot-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .shot-num { font-size: 11px; font-weight: 600; color: var(--text-3); min-width: 18px; margin-top: 2px; }
+  .shot-text { flex: 1; font-size: 12px; color: var(--text-2); line-height: 1.6; }
+  .shot-text strong { color: var(--text); font-weight: 600; }
+  .shot-text em { color: var(--text-3); font-style: italic; }
+  .del-btn { background: none; border: none; color: var(--text-3); font-size: 18px; cursor: pointer; line-height: 1; padding: 0 0 0 4px; flex-shrink: 0; }
+
+  /* ── SUMMARY CARD ── */
+  .summary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 14px;
+  }
+  .summary-title { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); margin-bottom: 12px; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat-val { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -.02em; }
+  .stat-lab { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+  /* ── NOTICE ── */
+  .notice {
+    background: var(--amber-light);
+    border: 1px solid rgba(184,106,0,0.25);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--amber);
+    line-height: 1.5;
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+
+  /* ── TOAST ── */
+  .data-bar {
+    background: var(--surface-2);
+    border-top: 0.5px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .data-bar-label {
+    font-size: 11px;
+    color: var(--text-3);
+    flex: 1;
+    line-height: 1.4;
+  }
+  .data-bar-label strong { color: var(--text-2); }
+  .data-action {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text-2);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .data-action.danger { color: var(--red); border-color: var(--red); }
+  .toast {
+    position: fixed;
+    bottom: calc(var(--safe-bottom) + 80px);
+    left: 50%; transform: translateX(-50%);
+    background: var(--text);
+    color: var(--surface-1);
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity .2s;
+    pointer-events: none;
+    z-index: 100;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  .sign-row { display: flex; gap: 8px; align-items: stretch; }
+  .sign-row .num-input { flex: 1; }
+  .sign-btn {
+    flex-shrink: 0;
+    width: 48px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text-2);
+    transition: all .12s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sign-btn:active { transform: scale(0.95); }
+  .sign-btn.pos { background: var(--green); color: #fff; border-color: var(--green); }
+  .sign-btn.neg { background: var(--red); color: #fff; border-color: var(--red); }
+  .sign-btn.neu { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .sway-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; align-items: stretch; }
+  .sway-row .num-input { min-width: 0; }
+  .sway-dir-btn {
+    padding: 10px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text-2);
+    white-space: nowrap;
+    transition: all .12s;
+  }
+  .sway-dir-btn:active { transform: scale(0.95); }
+  .sway-dir-btn.sel-neg { background: var(--green); color: #fff; border-color: var(--green); }
+  .sway-dir-btn.sel-neu { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .sway-dir-btn.sel-pos { background: var(--red); color: #fff; border-color: var(--red); }
+  .icon-long    { background: #e8f0fb; color: #1a5fb4; }
+  .icon-approach{ background: #e6f5ec; color: #1a7a40; }
+  .icon-short   { background: #fef3e2; color: #b86a00; }
+  .icon-putting { background: #f0eeff; color: #5b3fcb; }
+  .icon-hackmotion { background: #fce8e8; color: #b52d2d; }
+  .icon-wedge   { background: #e8faf4; color: #0f7a56; }
+  .icon-grieve  { background: #fdf0e8; color: #8b3a0f; }
+  .icon-pitch   { background: #e8f4ff; color: #0f4a8b; }
+  @media (prefers-color-scheme: dark) {
+    .icon-long    { background: #0d2040; color: #7ab8ff; }
+    .icon-approach{ background: #0a2e1a; color: #2ecc71; }
+    .icon-short   { background: #2a1e00; color: #f5a623; }
+    .icon-putting { background: #1a1040; color: #a78bfa; }
+    .icon-hackmotion { background: #2e0f0f; color: #e74c3c; }
+    .icon-wedge   { background: #001e15; color: #00c87a; }
+    .icon-grieve  { background: #2a1200; color: #f5a623; }
+    .icon-pitch   { background: #001530; color: #4a9eff; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+<div id="toast" class="toast"></div>
+
+<!-- ══ HOME ══════════════════════════════════════════════════════════════ -->
+<div id="s-home" class="screen active">
+  <div class="home-header">
+    <div class="home-logo">The Stack</div>
+    <div class="home-title">Shot Capture</div>
+    <div class="home-sub" id="home-date">The Stack — Shot Capture</div>
+  </div>
+  <div class="home-body">
+    <div class="section-label">Select session</div>
+    <div class="session-grid">
+      <button class="sess-card" onclick="selectSess('long')" id="card-long">
+        <div class="sess-icon icon-long">&#9654;</div>
+        <div class="sess-name">Long game</div>
+        <div class="sess-desc">Driver, woods, hybrids</div>
+      </button>
+      <button class="sess-card" onclick="selectSess('approach')" id="card-approach">
+        <div class="sess-icon icon-approach">&#9873;</div>
+        <div class="sess-name">Approach irons</div>
+        <div class="sess-desc">6i–LW, GIR tracking</div>
+      </button>
+      <button class="sess-card" onclick="selectSess('short')" id="card-short">
+        <div class="sess-icon icon-short">&#9675;</div>
+        <div class="sess-name">Short game</div>
+        <div class="sess-desc">Pitch, chip, bunker</div>
+      </button>
+      <button class="sess-card" onclick="selectSess('putting')" id="card-putting">
+        <div class="sess-icon icon-putting">&#9898;</div>
+        <div class="sess-name">Putting</div>
+        <div class="sess-desc">Green or indoor mat</div>
+      </button>
+      <button class="sess-card" onclick="selectSess('hackmotion')" id="card-hackmotion">
+        <div class="sess-icon icon-hackmotion">&#9203;</div>
+        <div class="sess-name">HackMotion</div>
+        <div class="sess-desc">Sensor data capture</div>
+      </button>
+      <button class="sess-card" onclick="selectSess('wedge')" id="card-wedge">
+        <div class="sess-icon icon-wedge">&#9678;</div>
+        <div class="sess-name">Wedge combine</div>
+        <div class="sess-desc">Stack app session</div>
+      </button>
+      <button class="sess-card" onclick="selectSess('grieve')" id="card-grieve">
+        <div class="sess-icon icon-grieve">&#9864;</div>
+        <div class="sess-name">3 Releases</div>
+        <div class="sess-desc">Dan Grieve short game</div>
+      </button>
+      <button class="sess-card" onclick="selectSess('pitch')" id="card-pitch">
+        <div class="sess-icon icon-pitch">&#8645;</div>
+        <div class="sess-name">Pitch mapping</div>
+        <div class="sess-desc">Carry by club &amp; address</div>
+      </button>
+    </div>
+    <button class="start-btn" id="start-btn" disabled onclick="startSess()">Start session</button>
+
+    <div class="data-bar">
+      <div class="data-bar-label">
+        Data auto-saved to this browser &nbsp;·&nbsp; <strong id="storage-summary">Loading…</strong>
+      </div>
+      <button class="data-action" onclick="exportAll()">Export</button>
+      <button class="data-action danger" onclick="confirmClearAll()">Clear all</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LONG GAME ════════════════════════════════════════════════════════ -->
+<div id="s-long" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">&#8592;</button>
+    <div class="topbar-title"><h1>Long game</h1><p>Indoor simulator</p></div>
+    <div class="topbar-pill" id="pill-long">0 shots</div>
+  </div>
+  <div class="session-body">
+    <div class="field">
+      <span class="field-label">Club</span>
+      <div class="chips" id="chips-long-club"></div>
+    </div>
+    <div class="num-row">
+      <div class="field">
+        <span class="field-label">Carry (m)</span>
+        <input class="num-input" type="number" id="long-carry" placeholder="247" inputmode="decimal">
+      </div>
+      <div class="field">
+        <span class="field-label">Total (m)</span>
+        <input class="num-input" type="number" id="long-total" placeholder="268" inputmode="decimal">
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Offline (m)</span>
+      <div class="sign-row">
+        <input class="num-input" type="text" id="long-offline" placeholder="e.g. 8" inputmode="decimal" autocorrect="off">
+        <button class="sign-btn neg" id="long-offline-dir-l" onclick="setOfflineDir('L',this)">L</button>
+        <button class="sign-btn pos" id="long-offline-dir-r" onclick="setOfflineDir('R',this)">R</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Fairway / target</span>
+      <div class="toggle-row">
+        <button class="toggle-btn" id="long-fwy-y" onclick="setTog('long-fwy','Y',this)">Hit</button>
+        <button class="toggle-btn" id="long-fwy-n" onclick="setTog('long-fwy','N',this)">Miss</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Miss direction</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'long-miss')">Left</button>
+        <button class="chip" onclick="chipSel(this,'long-miss')">Right</button>
+        <button class="chip" onclick="chipSel(this,'long-miss')">Short</button>
+        <button class="chip" onclick="chipSel(this,'long-miss')">Long</button>
+        <button class="chip" onclick="chipSel(this,'long-miss')">On target</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Sway gap value &amp; direction</span>
+      <div class="sway-row">
+        <input class="num-input" type="text" id="long-sway-val" placeholder="e.g. 2.4" inputmode="decimal" autocorrect="off">
+        <button class="sway-dir-btn" id="long-sway-neg" onclick="setSwayDir('long-sway','neg',this)">&#8722; Neg</button>
+        <button class="sway-dir-btn" id="long-sway-neu" onclick="setSwayDir('long-sway','neu',this)">0 Neu</button>
+        <button class="sway-dir-btn" id="long-sway-pos" onclick="setSwayDir('long-sway','pos',this)">&#43; Pos</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Strokes gained / shot</span>
+      <div class="sign-row">
+        <input class="num-input" type="text" id="long-sg" placeholder="0.24" inputmode="decimal" autocorrect="off" autocomplete="off">
+        <button class="sign-btn" id="long-sg-sign" onclick="toggleSign('long-sg-sign')">&#43;</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Note (optional)</span>
+      <input class="text-input" type="text" id="long-note" placeholder="Feel, cue, observation" autocorrect="off">
+    </div>
+    <hr class="divider">
+    <div id="long-log"></div>
+  </div>
+  <button class="log-btn" onclick="logShot('long')">Log shot</button>
+</div>
+
+<!-- ══ APPROACH ═════════════════════════════════════════════════════════ -->
+<div id="s-approach" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">&#8592;</button>
+    <div class="topbar-title"><h1>Approach irons</h1><p>Simulator / range</p></div>
+    <div class="topbar-pill" id="pill-approach">0 shots</div>
+  </div>
+  <div class="session-body">
+    <div class="field">
+      <span class="field-label">Club</span>
+      <div class="chips" id="chips-approach-club"></div>
+    </div>
+    <div class="num-row">
+      <div class="field">
+        <span class="field-label">Target (m)</span>
+        <input class="num-input" type="number" id="app-target" placeholder="160" inputmode="decimal">
+      </div>
+      <div class="field">
+        <span class="field-label">Carry (m)</span>
+        <input class="num-input" type="number" id="app-carry" placeholder="155" inputmode="decimal">
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">GIR</span>
+      <div class="toggle-row">
+        <button class="toggle-btn" id="app-gir-y" onclick="setTog('app-gir','Y',this)">Hit GIR</button>
+        <button class="toggle-btn" id="app-gir-n" onclick="setTog('app-gir','N',this)">Missed</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Proximity to hole (m)</span>
+      <input class="num-input" type="number" id="app-prox" placeholder="8.5" inputmode="decimal" step="0.1">
+    </div>
+    <div class="field">
+      <span class="field-label">Miss direction</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'app-miss')">Left</button>
+        <button class="chip" onclick="chipSel(this,'app-miss')">Right</button>
+        <button class="chip" onclick="chipSel(this,'app-miss')">Short</button>
+        <button class="chip" onclick="chipSel(this,'app-miss')">Long</button>
+        <button class="chip" onclick="chipSel(this,'app-miss')">On target</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Strike location</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'app-strike')">Toe</button>
+        <button class="chip" onclick="chipSel(this,'app-strike')">Centre</button>
+        <button class="chip" onclick="chipSel(this,'app-strike')">Heel</button>
+        <button class="chip" onclick="chipSel(this,'app-strike')">Thin</button>
+        <button class="chip" onclick="chipSel(this,'app-strike')">Fat</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Sway gap value &amp; direction</span>
+      <div class="sway-row">
+        <input class="num-input" type="text" id="app-sway-val" placeholder="e.g. 2.4" inputmode="decimal" autocorrect="off">
+        <button class="sway-dir-btn" id="app-sway-neg" onclick="setSwayDir('app-sway','neg',this)">&#8722; Neg</button>
+        <button class="sway-dir-btn" id="app-sway-neu" onclick="setSwayDir('app-sway','neu',this)">0 Neu</button>
+        <button class="sway-dir-btn" id="app-sway-pos" onclick="setSwayDir('app-sway','pos',this)">&#43; Pos</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Strokes gained / shot</span>
+      <div class="sign-row">
+        <input class="num-input" type="text" id="app-sg" placeholder="0.35" inputmode="decimal" autocorrect="off" autocomplete="off">
+        <button class="sign-btn" id="app-sg-sign" onclick="toggleSign('app-sg-sign')">&#43;</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Note (optional)</span>
+      <input class="text-input" type="text" id="app-note" placeholder="Feel, cue, observation" autocorrect="off">
+    </div>
+    <hr class="divider">
+    <div id="approach-log"></div>
+  </div>
+  <button class="log-btn" onclick="logShot('approach')">Log shot</button>
+</div>
+
+<!-- ══ SHORT GAME ════════════════════════════════════════════════════════ -->
+<div id="s-short" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">&#8592;</button>
+    <div class="topbar-title"><h1>Short game</h1><p>Short game area</p></div>
+    <div class="topbar-pill" id="pill-short">0 shots</div>
+  </div>
+  <div class="session-body">
+    <div class="field">
+      <span class="field-label">Shot type</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'sg-type');sgType(this.textContent)">Pitch</button>
+        <button class="chip" onclick="chipSel(this,'sg-type');sgType(this.textContent)">Chip</button>
+        <button class="chip" onclick="chipSel(this,'sg-type');sgType(this.textContent)">Bunker</button>
+        <button class="chip" onclick="chipSel(this,'sg-type');sgType(this.textContent)">Flop</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Club</span>
+      <div class="chips" id="chips-short-club"></div>
+    </div>
+    <div class="num-row">
+      <div class="field">
+        <span class="field-label">Distance (m)</span>
+        <input class="num-input" type="number" id="sg-dist" placeholder="35" inputmode="decimal">
+      </div>
+      <div class="field">
+        <span class="field-label">Proximity (m)</span>
+        <input class="num-input" type="number" id="sg-prox" placeholder="4.2" inputmode="decimal" step="0.1">
+      </div>
+    </div>
+    <!-- Release / address — shown based on shot type -->
+    <div class="field" id="sg-release-group">
+      <span class="field-label">Release (chip / bunker / flop)</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'sg-release')">R1 — Chip &amp; Run</button>
+        <button class="chip" onclick="chipSel(this,'sg-release')">R2 — Soft Landing</button>
+        <button class="chip" onclick="chipSel(this,'sg-release')">R3 — Lob Shot</button>
+      </div>
+    </div>
+    <div class="field" id="sg-address-group" style="display:none">
+      <span class="field-label">Address (pitch)</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'sg-address')">A1 — Short</button>
+        <button class="chip" onclick="chipSel(this,'sg-address')">A2 — Mid</button>
+        <button class="chip" onclick="chipSel(this,'sg-address')">A3 — Long</button>
+      </div>
+    </div>
+    <div class="field" id="sg-bunker-group" style="display:none">
+      <span class="field-label">Clean exit?</span>
+      <div class="toggle-row">
+        <button class="toggle-btn" id="sg-exit-y" onclick="setTog('sg-exit','Y',this)">Clean exit</button>
+        <button class="toggle-btn" id="sg-exit-n" onclick="setTog('sg-exit','N',this)">Stayed in</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Strike location</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'sg-strike')">Toe</button>
+        <button class="chip" onclick="chipSel(this,'sg-strike')">Centre</button>
+        <button class="chip" onclick="chipSel(this,'sg-strike')">Heel</button>
+        <button class="chip" onclick="chipSel(this,'sg-strike')">Thin</button>
+        <button class="chip" onclick="chipSel(this,'sg-strike')">Fat</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Note (optional)</span>
+      <input class="text-input" type="text" id="sg-note" placeholder="Trajectory, feel, outcome" autocorrect="off">
+    </div>
+    <hr class="divider">
+    <div id="short-log"></div>
+  </div>
+  <button class="log-btn" onclick="logShot('short')">Log shot</button>
+</div>
+
+<!-- ══ PUTTING ═══════════════════════════════════════════════════════════ -->
+<div id="s-putting" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">&#8592;</button>
+    <div class="topbar-title"><h1>Putting</h1><p>Green or indoor mat</p></div>
+    <div class="topbar-pill" id="pill-putting">0 putts</div>
+  </div>
+  <div class="session-body">
+    <div class="field">
+      <span class="field-label">Distance (ft)</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'putt-dist')">3ft</button>
+        <button class="chip" onclick="chipSel(this,'putt-dist')">4ft</button>
+        <button class="chip" onclick="chipSel(this,'putt-dist')">6ft</button>
+        <button class="chip" onclick="chipSel(this,'putt-dist')">10ft</button>
+        <button class="chip" onclick="chipSel(this,'putt-dist')">12ft</button>
+        <button class="chip" onclick="chipSel(this,'putt-dist')">15ft</button>
+        <button class="chip" onclick="chipSel(this,'putt-dist')">20ft</button>
+        <button class="chip" onclick="chipSel(this,'putt-dist')">25ft</button>
+        <button class="chip" onclick="chipSel(this,'putt-dist')">30ft</button>
+        <button class="chip" onclick="chipSel(this,'putt-dist')">40ft+</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Result</span>
+      <div class="toggle-row">
+        <button class="toggle-btn" id="putt-make-y" onclick="setTog('putt-make','Y',this)">Make</button>
+        <button class="toggle-btn" id="putt-make-n" onclick="setTog('putt-make','N',this)">Miss</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Putts to hole out</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'putt-total')">1</button>
+        <button class="chip" onclick="chipSel(this,'putt-total')">2</button>
+        <button class="chip" onclick="chipSel(this,'putt-total')">3+</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Miss type</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'putt-miss')">Left edge</button>
+        <button class="chip" onclick="chipSel(this,'putt-miss')">Right edge</button>
+        <button class="chip" onclick="chipSel(this,'putt-miss')">Short</button>
+        <button class="chip" onclick="chipSel(this,'putt-miss')">Long</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Drill</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'putt-drill')">Lag ladder</button>
+        <button class="chip" onclick="chipSel(this,'putt-drill')">Random lag</button>
+        <button class="chip" onclick="chipSel(this,'putt-drill')">11–16ft zone</button>
+        <button class="chip" onclick="chipSel(this,'putt-drill')">Clock drill</button>
+        <button class="chip" onclick="chipSel(this,'putt-drill')">Gate drill</button>
+        <button class="chip" onclick="chipSel(this,'putt-drill')">4ft make rate</button>
+        <button class="chip" onclick="chipSel(this,'putt-drill')">Free practice</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Slope direction</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'putt-slope-dir')">Uphill</button>
+        <button class="chip" onclick="chipSel(this,'putt-slope-dir')">Downhill</button>
+        <button class="chip" onclick="chipSel(this,'putt-slope-dir')">Left to right</button>
+        <button class="chip" onclick="chipSel(this,'putt-slope-dir')">Right to left</button>
+        <button class="chip" onclick="chipSel(this,'putt-slope-dir')">Double break</button>
+        <button class="chip" onclick="chipSel(this,'putt-slope-dir')">Flat</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Gradient</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'putt-slope-pct')">Gentle (&lt;1%)</button>
+        <button class="chip" onclick="chipSel(this,'putt-slope-pct')">Moderate (1–2%)</button>
+        <button class="chip" onclick="chipSel(this,'putt-slope-pct')">Steep (&gt;2%)</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Note (optional)</span>
+      <input class="text-input" type="text" id="putt-note" placeholder="Speed, line, feel" autocorrect="off">
+    </div>
+    <hr class="divider">
+    <div id="putting-log"></div>
+  </div>
+  <button class="log-btn" onclick="logShot('putting')">Log putt</button>
+</div>
+
+<!-- ══ HACKMOTION ════════════════════════════════════════════════════════ -->
+<div id="s-hackmotion" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">&#8592;</button>
+    <div class="topbar-title"><h1>HackMotion</h1><p>Indoor mat — sensor data</p></div>
+    <div class="topbar-pill" id="pill-hackmotion">0 reps</div>
+  </div>
+  <div class="session-body">
+    <div class="field">
+      <span class="field-label">Session</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'hm-sess')">P1 — Baseline</button>
+        <button class="chip" onclick="chipSel(this,'hm-sess')">P2 — Embed</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Distance (ft)</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'hm-dist')">3ft</button>
+        <button class="chip" onclick="chipSel(this,'hm-dist')">4ft</button>
+        <button class="chip" onclick="chipSel(this,'hm-dist')">6ft</button>
+        <button class="chip" onclick="chipSel(this,'hm-dist')">10ft</button>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Top of stroke</div>
+
+      <div class="field">
+        <span class="field-label">Extension / Flexion</span>
+        <div class="chips" id="hm-top-ef-chips">
+          <button class="chip" onclick="hmRangeChip(this,'hm-top-ef','in')">In range</button>
+          <button class="chip" onclick="hmRangeChip(this,'hm-top-ef','out')">Out of range</button>
+        </div>
+        <div id="hm-top-ef-dir" style="display:none;margin-top:8px">
+          <div class="chips">
+            <button class="chip" onclick="hmDirChip(this,'hm-top-ef-dir')">Extension</button>
+            <button class="chip" onclick="hmDirChip(this,'hm-top-ef-dir')">Flexion</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="field-label">Ulnar / Radial</span>
+        <div class="chips" id="hm-top-ur-chips">
+          <button class="chip" onclick="hmRangeChip(this,'hm-top-ur','in')">In range</button>
+          <button class="chip" onclick="hmRangeChip(this,'hm-top-ur','out')">Out of range</button>
+        </div>
+        <div id="hm-top-ur-dir" style="display:none;margin-top:8px">
+          <div class="chips">
+            <button class="chip" onclick="hmDirChip(this,'hm-top-ur-dir')">Ulnar</button>
+            <button class="chip" onclick="hmDirChip(this,'hm-top-ur-dir')">Radial</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Impact</div>
+
+      <div class="field">
+        <span class="field-label">Extension / Flexion</span>
+        <div class="chips" id="hm-imp-ef-chips">
+          <button class="chip" onclick="hmRangeChip(this,'hm-imp-ef','in')">In range</button>
+          <button class="chip" onclick="hmRangeChip(this,'hm-imp-ef','out')">Out of range</button>
+        </div>
+        <div id="hm-imp-ef-dir" style="display:none;margin-top:8px">
+          <div class="chips">
+            <button class="chip" onclick="hmDirChip(this,'hm-imp-ef-dir')">Extension</button>
+            <button class="chip" onclick="hmDirChip(this,'hm-imp-ef-dir')">Flexion</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="field-label">Ulnar / Radial</span>
+        <div class="chips" id="hm-imp-ur-chips">
+          <button class="chip" onclick="hmRangeChip(this,'hm-imp-ur','in')">In range</button>
+          <button class="chip" onclick="hmRangeChip(this,'hm-imp-ur','out')">Out of range</button>
+        </div>
+        <div id="hm-imp-ur-dir" style="display:none;margin-top:8px">
+          <div class="chips">
+            <button class="chip" onclick="hmDirChip(this,'hm-imp-ur-dir')">Ulnar</button>
+            <button class="chip" onclick="hmDirChip(this,'hm-imp-ur-dir')">Radial</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="field-label">Rotation</span>
+        <div class="chips" id="hm-imp-rot-chips">
+          <button class="chip" onclick="hmRangeChip(this,'hm-imp-rot','in')">In range</button>
+          <button class="chip" onclick="hmRangeChip(this,'hm-imp-rot','out')">Out of range</button>
+        </div>
+        <div id="hm-imp-rot-dir" style="display:none;margin-top:8px">
+          <div class="chips">
+            <button class="chip" onclick="hmDirChip(this,'hm-imp-rot-dir')">Open</button>
+            <button class="chip" onclick="hmDirChip(this,'hm-imp-rot-dir')">Closed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Timing</div>
+
+      <div class="field">
+        <span class="field-label">Ratio</span>
+        <div class="chips" id="hm-tim-ratio-chips">
+          <button class="chip" onclick="hmRangeChip(this,'hm-tim-ratio','in')">In range</button>
+          <button class="chip" onclick="hmRangeChip(this,'hm-tim-ratio','out')">Out of range</button>
+        </div>
+        <div id="hm-tim-ratio-dir" style="display:none;margin-top:8px">
+          <div class="chips">
+            <button class="chip" onclick="hmDirChip(this,'hm-tim-ratio-dir')">Too fast</button>
+            <button class="chip" onclick="hmDirChip(this,'hm-tim-ratio-dir')">Too slow</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="num-row">
+        <div class="field">
+          <span class="field-label">Backstroke (s)</span>
+          <input class="num-input" type="text" id="hm-tim-back" placeholder="e.g. 0.82" inputmode="decimal" autocorrect="off">
+        </div>
+        <div class="field">
+          <span class="field-label">Downstroke (s)</span>
+          <input class="num-input" type="text" id="hm-tim-down" placeholder="e.g. 0.41" inputmode="decimal" autocorrect="off">
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Result</span>
+      <div class="toggle-row">
+        <button class="toggle-btn" id="hm-make-y" onclick="setTog('hm-make','Y',this)">Make</button>
+        <button class="toggle-btn" id="hm-make-n" onclick="setTog('hm-make','N',this)">Miss</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Note (optional)</span>
+      <input class="text-input" type="text" id="hm-note" placeholder="Feel, cue, observation" autocorrect="off">
+    </div>
+    <hr class="divider">
+    <div id="hackmotion-log"></div>
+  </div>
+  <button class="log-btn" onclick="logShot('hackmotion')">Log rep</button>
+</div>
+
+<!-- ══ WEDGE COMBINE ═════════════════════════════════════════════════════ -->
+<div id="s-wedge" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">&#8592;</button>
+    <div class="topbar-title"><h1>Wedge combine</h1><p>Stack app session</p></div>
+    <div class="topbar-pill" id="pill-wedge">0 shots</div>
+  </div>
+  <div class="session-body">
+    <div class="notice">Run the Stack app for session control. Log each shot here alongside Stack Points to capture strike and technical cue data.</div>
+    <div class="field">
+      <span class="field-label">Club</span>
+      <div class="chips" id="chips-wedge-club"></div>
+    </div>
+    <div class="num-row">
+      <div class="field">
+        <span class="field-label">Target (m)</span>
+        <input class="num-input" type="number" id="wdg-target" placeholder="85" inputmode="decimal">
+      </div>
+      <div class="field">
+        <span class="field-label">Carry (m)</span>
+        <input class="num-input" type="number" id="wdg-carry" placeholder="82" inputmode="decimal">
+      </div>
+    </div>
+    <div class="num-row">
+      <div class="field">
+        <span class="field-label">Stack Points</span>
+        <input class="num-input" type="number" id="wdg-pts" placeholder="142" inputmode="decimal">
+      </div>
+      <div class="field">
+        <span class="field-label">Proximity (m)</span>
+        <input class="num-input" type="number" id="wdg-prox" placeholder="9.5" inputmode="decimal" step="0.1">
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Miss direction</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'wdg-miss')">Left</button>
+        <button class="chip" onclick="chipSel(this,'wdg-miss')">Right</button>
+        <button class="chip" onclick="chipSel(this,'wdg-miss')">Short</button>
+        <button class="chip" onclick="chipSel(this,'wdg-miss')">Long</button>
+        <button class="chip" onclick="chipSel(this,'wdg-miss')">On target</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Strike location</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'wdg-strike')">Toe</button>
+        <button class="chip" onclick="chipSel(this,'wdg-strike')">Centre</button>
+        <button class="chip" onclick="chipSel(this,'wdg-strike')">Heel</button>
+        <button class="chip" onclick="chipSel(this,'wdg-strike')">Thin</button>
+        <button class="chip" onclick="chipSel(this,'wdg-strike')">Fat</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Head still / chest through?</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'wdg-tech')">Both good &#10003;</button>
+        <button class="chip" onclick="chipSel(this,'wdg-tech')">Head moved</button>
+        <button class="chip" onclick="chipSel(this,'wdg-tech')">Chest stalled</button>
+        <button class="chip" onclick="chipSel(this,'wdg-tech')">Both off</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Note (optional)</span>
+      <input class="text-input" type="text" id="wdg-note" placeholder="Stack cue, feel" autocorrect="off">
+    </div>
+    <hr class="divider">
+    <div id="wedge-log"></div>
+  </div>
+  <button class="log-btn" onclick="logShot('wedge')">Log shot</button>
+</div>
+
+</div><!-- .app -->
+
+<!-- ══ PITCH CARRY MAPPING ════════════════════════════════════════════════ -->
+<div id="s-pitch" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()" aria-label="Back">&#8592;</button>
+    <div class="topbar-title"><h1>Pitch mapping</h1><p>Carry by club &amp; address</p></div>
+    <div class="topbar-pill" id="pill-pitch">0 shots</div>
+  </div>
+  <div class="session-body">
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:14px;font-size:12px;line-height:1.5;color:var(--text-2)">
+      Address positions: <strong style="color:var(--text)">A1</strong> = short pitch setup &nbsp;·&nbsp; <strong style="color:var(--text)">A2</strong> = mid pitch setup &nbsp;·&nbsp; <strong style="color:var(--text)">A3</strong> = full pitch setup. Log carry per shot to build your distance map by club and address.
+    </div>
+
+    <div class="field">
+      <span class="field-label">Club</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'pitch-club')">LW2</button>
+        <button class="chip" onclick="chipSel(this,'pitch-club')">LW1</button>
+        <button class="chip" onclick="chipSel(this,'pitch-club')">SW</button>
+        <button class="chip" onclick="chipSel(this,'pitch-club')">GW</button>
+        <button class="chip" onclick="chipSel(this,'pitch-club')">PW</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Address</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'pitch-addr')">A1 — Short</button>
+        <button class="chip" onclick="chipSel(this,'pitch-addr')">A2 — Mid</button>
+        <button class="chip" onclick="chipSel(this,'pitch-addr')">A3 — Long</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Carry (m)</span>
+      <input class="num-input" type="text" id="pitch-carry" placeholder="e.g. 42" inputmode="decimal" autocorrect="off">
+    </div>
+
+    <div class="field">
+      <span class="field-label">Strike quality</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'pitch-strike')">Clean &#10003;</button>
+        <button class="chip" onclick="chipSel(this,'pitch-strike')">Thin</button>
+        <button class="chip" onclick="chipSel(this,'pitch-strike')">Fat</button>
+        <button class="chip" onclick="chipSel(this,'pitch-strike')">Toe</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Note (optional)</span>
+      <input class="text-input" type="text" id="pitch-note" placeholder="Flight, feel, wind" autocorrect="off">
+    </div>
+
+    <hr class="divider">
+    <div id="pitch-log"></div>
+  </div>
+  <button class="log-btn" onclick="logShot('pitch')">Log shot</button>
+</div>
+
+<!-- ══ GRIEVE 3 RELEASES ══════════════════════════════════════════════════ -->
+<div id="s-grieve" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()" aria-label="Back">&#8592;</button>
+    <div class="topbar-title"><h1>3 Releases</h1><p>Dan Grieve short game</p></div>
+    <div class="topbar-pill" id="pill-grieve">0 shots</div>
+  </div>
+  <div class="session-body">
+
+    <div class="field">
+      <span class="field-label">Release</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'gr-release');grRelease(this.textContent)">R1 — Chip &amp; Run</button>
+        <button class="chip" onclick="chipSel(this,'gr-release');grRelease(this.textContent)">R2 — Soft Landing</button>
+        <button class="chip" onclick="chipSel(this,'gr-release');grRelease(this.textContent)">R3 — Lob Shot</button>
+      </div>
+    </div>
+
+    <!-- Release-specific cue reminder (shown dynamically) -->
+    <div id="gr-cue-box" style="display:none;border-radius:var(--radius);padding:10px 12px;margin-bottom:14px;font-size:12px;line-height:1.5;font-weight:500"></div>
+
+    <div class="field">
+      <span class="field-label">Shot type / location</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'gr-type');grCheckBunker()">Greenside chip</button>
+        <button class="chip" onclick="chipSel(this,'gr-type');grCheckBunker()">Pitch (23-45m)</button>
+        <button class="chip" onclick="chipSel(this,'gr-type');grCheckBunker()">Flop / lob</button>
+        <button class="chip" onclick="chipSel(this,'gr-type');grCheckBunker()">Sand — Standard</button>
+        <button class="chip" onclick="chipSel(this,'gr-type');grCheckBunker()">Sand — Compact</button>
+        <button class="chip" onclick="chipSel(this,'gr-type');grCheckBunker()">Sand — Deep</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Club</span>
+      <div class="chips" id="chips-grieve-club"></div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Lie quality</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'gr-lie')">Good (grass under)</button>
+        <button class="chip" onclick="chipSel(this,'gr-lie')">Sitting down</button>
+        <button class="chip" onclick="chipSel(this,'gr-lie')">Hard pan</button>
+        <button class="chip" onclick="chipSel(this,'gr-lie')">Sand — clean / standard</button>
+        <button class="chip" onclick="chipSel(this,'gr-lie')">Sand — compact / firm</button>
+        <button class="chip" onclick="chipSel(this,'gr-lie')">Sand — deep / fluffy</button>
+        <button class="chip" onclick="chipSel(this,'gr-lie')">Sand — buried / plugged</button>
+      </div>
+    </div>
+
+    <!-- Release-specific setup fields -->
+    <div id="gr-r1-fields">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1a4620;margin-bottom:10px">R1 Setup Check</div>
+        <div class="field">
+          <span class="field-label">Sternum position</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-sternum')">In front of ball &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-sternum')">Behind ball</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Lead wrist (flat = good)</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-wrist')">Flat &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-wrist')">Some hinge</button>
+            <button class="chip" onclick="chipSel(this,'gr-wrist')">Too much hinge</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Weight / backswing</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-weight')">Weight stayed left &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-weight')">Shifted right</button>
+            <button class="chip" onclick="chipSel(this,'gr-weight')">Wristy (not wide)</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Release point (butt of grip)</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-release-pt')">Lead hip &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-release-pt')">Too short</button>
+            <button class="chip" onclick="chipSel(this,'gr-release-pt')">Too long</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Shaft return</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-shaft-ret')">Returned to start &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-shaft-ret')">Delofted</button>
+            <button class="chip" onclick="chipSel(this,'gr-shaft-ret')">Added loft</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="gr-r2-fields" style="display:none">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1a3a70;margin-bottom:10px">R2 Setup Check</div>
+        <div class="field">
+          <span class="field-label">Ball position (central = correct)</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-ball-pos')">Central &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-ball-pos')">Too far forward</button>
+            <button class="chip" onclick="chipSel(this,'gr-ball-pos')">Too far back</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Grip pressure</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-grip')">Very light &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-grip')">Normal</button>
+            <button class="chip" onclick="chipSel(this,'gr-grip')">Too tight</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Backswing (toe to sky = correct)</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-backswing')">Toe pointing to sky &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-backswing')">Across the line</button>
+            <button class="chip" onclick="chipSel(this,'gr-backswing')">Laid off</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Release point (butt of grip)</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-release-pt')">Belt buckle &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-release-pt')">Too early (hip)</button>
+            <button class="chip" onclick="chipSel(this,'gr-release-pt')">Too late (back hip)</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Loft at finish</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-loft-fin')">Loft still on &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-loft-fin')">Rolled over / lost loft</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="gr-r3-fields" style="display:none">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b1a1a;margin-bottom:10px">R3 Setup Check</div>
+        <div class="field">
+          <span class="field-label">Body alignment</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-alignment')">Body left / face right &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-alignment')">Both square</button>
+            <button class="chip" onclick="chipSel(this,'gr-alignment')">Both left</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Sternum position</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-sternum')">Behind ball &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-sternum')">In front of ball</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Lead wrist (max cupping = good)</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-wrist')">Max cupping &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-wrist')">Some cupping</button>
+            <button class="chip" onclick="chipSel(this,'gr-wrist')">Flat (too little)</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Release point (butt of grip)</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-release-pt')">Back hip / holster &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-release-pt')">Too early (belt)</button>
+            <button class="chip" onclick="chipSel(this,'gr-release-pt')">Blocked (no release)</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Face angle</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-face')">Open &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-face')">Square</button>
+            <button class="chip" onclick="chipSel(this,'gr-face')">Closed</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Loft at finish</span>
+          <div class="chips">
+            <button class="chip" onclick="chipSel(this,'gr-loft-fin')">Loft held on &#10003;</button>
+            <button class="chip" onclick="chipSel(this,'gr-loft-fin')">Rolled over</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Distance to target (m)</span>
+      <input class="num-input" type="text" id="gr-dist" placeholder="e.g. 15" inputmode="decimal" autocorrect="off">
+    </div>
+
+    <div class="field">
+      <span class="field-label">Proximity (m)</span>
+      <input class="num-input" type="text" id="gr-prox" placeholder="e.g. 3.5" inputmode="decimal" autocorrect="off">
+    </div>
+
+    <div class="field">
+      <span class="field-label">Flight result</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'gr-flight')">As intended &#10003;</button>
+        <button class="chip" onclick="chipSel(this,'gr-flight')">Too low</button>
+        <button class="chip" onclick="chipSel(this,'gr-flight')">Too high</button>
+        <button class="chip" onclick="chipSel(this,'gr-flight')">Too much spin</button>
+        <button class="chip" onclick="chipSel(this,'gr-flight')">Not enough spin</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Strike quality</span>
+      <div class="chips">
+        <button class="chip" onclick="chipSel(this,'gr-strike')">Clean &#10003;</button>
+        <button class="chip" onclick="chipSel(this,'gr-strike')">Thin</button>
+        <button class="chip" onclick="chipSel(this,'gr-strike')">Fat</button>
+        <button class="chip" onclick="chipSel(this,'gr-strike')">Toe</button>
+        <button class="chip" onclick="chipSel(this,'gr-strike')">Heel</button>
+      </div>
+    </div>
+
+    <div class="field" id="gr-bunker-exit-field" style="display:none">
+      <span class="field-label">Bunker exit</span>
+      <div class="toggle-row">
+        <button class="toggle-btn" id="gr-exit-y" onclick="setTog('gr-exit','Y',this)">Clean exit</button>
+        <button class="toggle-btn" id="gr-exit-n" onclick="setTog('gr-exit','N',this)">Stayed in</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Note (optional)</span>
+      <input class="text-input" type="text" id="gr-note" placeholder="Feel, cue, observation" autocorrect="off">
+    </div>
+
+    <hr class="divider">
+    <div id="grieve-log"></div>
+  </div>
+  <button class="log-btn" onclick="logShot('grieve')">Log shot</button>
+</div>
+
+<script>
+const CLUBS = {
+  long: ['Driver','3W','5W','9W','4H','5H','5i'],
+  approach: ['5i','6i','7i','8i','9i','PW','GW','SW','LW1','LW2'],
+  short: ['SW','LW1','LW2','GW','PW','9i'],
+  wedge: ['GW','SW','LW1','LW2','PW'],
+  grieve: ['7i','8i','9i','PW','GW','SW','LW1','LW2']
+};
+
+const META = {
+  long:       { label:'Long game',      unit:'shots' },
+  approach:   { label:'Approach irons', unit:'shots' },
+  short:      { label:'Short game',     unit:'shots' },
+  putting:    { label:'Putting',        unit:'putts' },
+  hackmotion: { label:'HackMotion',     unit:'reps'  },
+  wedge:      { label:'Wedge combine',  unit:'shots' },
+  grieve:     { label:'3 Releases',     unit:'shots' },
+  pitch:      { label:'Pitch mapping',  unit:'shots' }
+};
+
+const state = {
+  sel: null,
+  chips: {},
+  togs: {},
+  shots: { long:[], approach:[], short:[], putting:[], hackmotion:[], wedge:[], grieve:[], pitch:[] }
+};
+
+// ── STORAGE ───────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'stackShotCapture_v1';
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.shots));
+  } catch(e) {
+    console.warn('localStorage save failed:', e);
+  }
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    // Merge: only load keys that exist in state.shots
+    Object.keys(state.shots).forEach(k => {
+      if (saved[k] && Array.isArray(saved[k])) {
+        state.shots[k] = saved[k];
+      }
+    });
+  } catch(e) {
+    console.warn('localStorage load failed:', e);
+  }
+}
+
+function updateStorageSummary() {
+  const el = document.getElementById('storage-summary');
+  if (!el) return;
+  const totals = Object.entries(state.shots)
+    .filter(([,v]) => v.length > 0)
+    .map(([k,v]) => `${META[k]?.label || k}: ${v.length}`)
+    .join(', ');
+  const total = Object.values(state.shots).reduce((a,b) => a + b.length, 0);
+  el.textContent = total === 0 ? 'No sessions saved yet' : `${total} shots — ${totals}`;
+}
+
+function exportAll() {
+  const data = {
+    exported: new Date().toISOString(),
+    week: new Date().toLocaleDateString('en-AU', {day:'numeric',month:'long',year:'numeric'}),
+    sessions: state.shots
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'stack_shots_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Exported ✓');
+}
+
+function confirmClearAll() {
+  if (confirm('Clear ALL saved session data? This cannot be undone.')) {
+    Object.keys(state.shots).forEach(k => { state.shots[k] = []; });
+    saveToStorage();
+    Object.keys(META).forEach(k => updatePill(k));
+    updateStorageSummary();
+    toast('All data cleared');
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+function init() {
+  Object.entries(CLUBS).forEach(([sess, clubs]) => {
+    const el = document.getElementById('chips-' + sess + '-club');
+    if (!el) return;
+    clubs.forEach(cl => {
+      const b = document.createElement('button');
+      b.className = 'chip';
+      b.textContent = cl;
+      b.onclick = () => chipSel(b, sess + '-club');
+      el.appendChild(b);
+    });
+  });
+
+  // Load any previously saved data
+  loadFromStorage();
+
+  // Refresh pills for any loaded sessions
+  Object.keys(META).forEach(k => updatePill(k));
+
+  // Refresh all log views so loaded data renders
+  Object.keys(state.shots).forEach(k => {
+    if (state.shots[k].length > 0) renderLog(k);
+  });
+
+  updateStorageSummary();
+
+  // Set current date on home screen
+  const dateEl = document.getElementById('home-date');
+  if (dateEl) {
+    const d = new Date().toLocaleDateString('en-AU', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+    dateEl.textContent = d;
+  }
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────
+function selectSess(id) {
+  state.sel = id;
+  document.querySelectorAll('.sess-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('card-' + id).classList.add('selected');
+  document.getElementById('start-btn').disabled = false;
+}
+
+function startSess() {
+  if (!state.sel) return;
+  show('s-' + state.sel);
+  window.scrollTo(0, 0);
+}
+
+function goHome() {
+  show('s-home');
+  updateStorageSummary();
+  window.scrollTo(0, 0);
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── CHIP SELECT ───────────────────────────────────────────────────────────
+function chipSel(el, group) {
+  const alreadySel = el.classList.contains('sel');
+  // Deselect all chips in this group — works for both inline onclick and dynamic chips
+  const byAttr = document.querySelectorAll(`[onclick*="'${group}'"]`);
+  if (byAttr.length) {
+    byAttr.forEach(c => c.classList.remove('sel', 'sel-green', 'sel-red'));
+  } else {
+    // Dynamic chips (club buttons): deselect siblings in same container
+    el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('sel', 'sel-green', 'sel-red'));
+  }
+  if (!alreadySel) {
+    el.classList.add('sel');
+    state.chips[group] = el.textContent.trim();
+  } else {
+    delete state.chips[group];
+  }
+}
+
+function getChip(group) { return state.chips[group] || null; }
+
+// ── HACKMOTION RANGE CHIP ─────────────────────────────────────────────────
+function hmRangeChip(el, group, val) {
+  const alreadySel = el.classList.contains('sel');
+  el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
+  const dirDiv = document.getElementById(group + '-dir');
+  if (!alreadySel) {
+    el.classList.add('sel');
+    state.chips[group] = val;
+    if (dirDiv) dirDiv.style.display = val === 'out' ? 'block' : 'none';
+    // Clear any previously selected direction when toggling range state
+    if (dirDiv && val === 'in') {
+      dirDiv.querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
+      delete state.chips[group + '-dir'];
+    }
+  } else {
+    delete state.chips[group];
+    delete state.chips[group + '-dir'];
+    if (dirDiv) {
+      dirDiv.style.display = 'none';
+      dirDiv.querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
+    }
+  }
+}
+
+function hmDirChip(el, group) {
+  const alreadySel = el.classList.contains('sel');
+  el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
+  if (!alreadySel) {
+    el.classList.add('sel');
+    state.chips[group] = el.textContent.trim();
+  } else {
+    delete state.chips[group];
+  }
+}
+
+// ── TOGGLE ────────────────────────────────────────────────────────────────
+function setTog(key, val, el) {
+  state.togs[key] = val;
+  const y = document.getElementById(key + '-y');
+  const n = document.getElementById(key + '-n');
+  if (y) y.className = 'toggle-btn' + (val === 'Y' ? ' on' : '');
+  if (n) n.className = 'toggle-btn' + (val === 'N' ? ' off' : '');
+}
+
+function getTog(key) { return state.togs[key] || null; }
+
+// ── SIGN TOGGLE (SG +/−) ─────────────────────────────────────────────────
+function toggleSign(btnId) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  const isPos = btn.classList.contains('pos') || (!btn.classList.contains('neg') && !btn.classList.contains('pos'));
+  btn.classList.remove('pos','neg');
+  if (isPos) {
+    btn.classList.add('neg');
+    btn.innerHTML = '&#8722;';
+    state.chips[btnId] = 'neg';
+  } else {
+    btn.classList.add('pos');
+    btn.innerHTML = '&#43;';
+    state.chips[btnId] = 'pos';
+  }
+}
+
+function getSignedSG(inputId, btnId) {
+  const raw = getVal(inputId);
+  if (!raw) return null;
+  const n = parseFloat(raw.replace(/[^\d.]/g, ''));
+  if (isNaN(n)) return null;
+  const sign = state.chips[btnId] === 'neg' ? -1 : 1;
+  return sign * n;
+}
+
+// ── SWAY DIR ──────────────────────────────────────────────────────────────
+function setSwayDir(prefix, dir, el) {
+  const already = el.classList.contains('sel-' + dir);
+  ['neg','neu','pos'].forEach(d => {
+    const b = document.getElementById(prefix + '-' + d);
+    if (b) b.classList.remove('sel-neg','sel-neu','sel-pos');
+  });
+  if (!already) {
+    el.classList.add('sel-' + dir);
+    state.chips[prefix + '-dir'] = dir;
+  } else {
+    delete state.chips[prefix + '-dir'];
+  }
+}
+
+function getSignedSway(prefix) {
+  const raw = getVal(prefix + '-val');
+  const dir = state.chips[prefix + '-dir'];
+  if (!dir) return null;
+  if (dir === 'neu') return 0;
+  const n = raw ? parseFloat(raw.replace(/[^\d.]/g, '')) : null;
+  if (n === null || isNaN(n)) return null;
+  return dir === 'neg' ? -n : n;
+}
+
+function fmtSway(v) {
+  if (v === null) return null;
+  if (v === 0) return '0 (Neu)';
+  return (v > 0 ? '+' : '') + v.toFixed(1);
+}
+
+// ── OFFLINE DIR ───────────────────────────────────────────────────────────
+function setOfflineDir(dir, el) {
+  const already = state.chips['long-offline-dir'] === dir && el.classList.contains('sel-neu');
+  // Toggle: if same dir tapped again, deselect
+  ['L','R'].forEach(d => {
+    const b = document.getElementById('long-offline-dir-' + d.toLowerCase());
+    if (b) { b.classList.remove('sel-neu'); }
+  });
+  if (state.chips['long-offline-dir'] === dir) {
+    delete state.chips['long-offline-dir'];
+  } else {
+    state.chips['long-offline-dir'] = dir;
+    el.classList.add('sel-neu');
+  }
+}
+
+function getSignedOffline() {
+  const raw = getVal('long-offline');
+  const dir = state.chips['long-offline-dir'];
+  if (!raw || !dir) return null;
+  const n = parseFloat(raw.replace(/[^\d.]/g, ''));
+  if (isNaN(n)) return null;
+  return dir === 'L' ? -n : n;
+}
+
+function medianOffline(shots) {
+  const vals = shots.map(s => s.offline).filter(v => v !== null && v !== undefined && typeof v === 'number');
+  if (!vals.length) return null;
+  const sorted = [...vals].sort((a,b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? Math.round((sorted[mid-1] + sorted[mid]) / 2 * 10) / 10
+    : Math.round(sorted[mid] * 10) / 10;
+}
+
+function fmtOffline(v) {
+  if (v === null) return null;
+  if (v === 0) return '0';
+  return (v > 0 ? '+' : '') + v.toFixed(1) + 'm ' + (v > 0 ? 'R' : 'L');
+}
+
+// ── INPUT ─────────────────────────────────────────────────────────────────
+function getVal(id) {
+  const el = document.getElementById(id);
+  return el && el.value.trim() ? el.value.trim() : null;
+}
+
+// ── SHORT GAME TYPE TOGGLE ────────────────────────────────────────────────
+function sgType(type) {
+  const isBunker = type === 'Bunker';
+  const isPitch  = type === 'Pitch';
+  document.getElementById('sg-bunker-group').style.display  = isBunker ? 'block'  : 'none';
+  document.getElementById('sg-release-group').style.display = !isPitch  ? 'block'  : 'none';
+  document.getElementById('sg-address-group').style.display = isPitch   ? 'block'  : 'none';
+}
+
+// ── GRIEVE RELEASE TOGGLE ─────────────────────────────────────────────────
+const GR_CUES = {
+  'R1 — Chip & Run': {
+    bg: '#e6f5ec', color: '#1a4620',
+    text: 'R1: Butt to LEAD HIP · Front bounce · Ball BACK of centre · Narrow stance · Sternum IN FRONT of ball · Flat lead wrist · Weight stays left · Non-wristy backswing · Return shaft to where it started · "Tik, Tok"'
+  },
+  'R2 — Soft Landing': {
+    bg: '#e0eafa', color: '#1a3a70',
+    text: 'R2: Butt to BELT BUCKLE · Middle bounce · Ball CENTRAL · Neutral shaft lean · Further from ball than R1 · Gentle wrist hinge · VERY light grip pressure · Clubhead releases past hands · Loft still on at finish · Needs grass under ball'
+  },
+  'R3 — Lob Shot': {
+    bg: '#fae6e6', color: '#6b1a1a',
+    text: 'R3: Butt to BACK HIP (holster) · Trailing bounce · Ball forward of centre · Wide stance · Sternum BEHIND ball · Hands low · Max wrist cupping · Body aim LEFT / face RIGHT · Narrow hand arc · Chest faces target · Loft on at finish'
+  },
+  'Sand — Standard': {
+    bg: '#fef3e2', color: '#7a4400',
+    text: 'Standard sand = R2 RELEASE · Ball ahead of centre · Neutral shaft lean · Left foot flared 45° · Weight stacked left · Pressure stays left as wrists hinge · Splash and slide through sand · Legs stable throughout · Legs match set-up angles at finish'
+  },
+  'Sand — Compact': {
+    bg: '#f5f0ff', color: '#4a1a7a',
+    text: 'Compact sand = R1 RELEASE · Ball BACK of centre · Upper body loaded left · Forward shaft lean · Club picked up earlier with wrists · Hands LEAD clubhead into sand (reduces bounce) · Short digging finish · Hold the loft'
+  },
+  'Sand — Deep': {
+    bg: '#fff0f0', color: '#7a0000',
+    text: 'Deep sand = AGGRESSIVE R3 · Ball toward LEAD HEEL · Hands BEHIND ball (maximises bounce) · Long backswing · Aggressive Release-3 to splash sand effectively · More chest speed · Legs REMAIN STABLE despite extra speed'
+  },
+  'Pitch': {
+    bg: '#f0f8ff', color: '#1a3a70',
+    text: 'Pitch: Address varies by shot length · Weight 60/40 on left side · Pressure stays left · Feel a NATURAL END of backswing (not forced stop) · Clubhead releases as chest matches up through impact · Minimal right heel lift · Chest rotates around pivot line'
+  }
+};
+
+function grRelease(release) {
+  const cueBox = document.getElementById('gr-cue-box');
+  const cue = GR_CUES[release.trim()];
+  if (cue) {
+    cueBox.style.display = 'block';
+    cueBox.style.background = cue.bg;
+    cueBox.style.color = cue.color;
+    cueBox.style.border = '1px solid ' + cue.color + '40';
+    cueBox.textContent = cue.text;
+  }
+  const r = release.trim().startsWith('R1') ? '1' : release.trim().startsWith('R2') ? '2' : '3';
+  document.getElementById('gr-r1-fields').style.display = r === '1' ? 'block' : 'none';
+  document.getElementById('gr-r2-fields').style.display = r === '2' ? 'block' : 'none';
+  document.getElementById('gr-r3-fields').style.display = r === '3' ? 'block' : 'none';
+  // Show bunker exit field only if a bunker type is selected
+  grCheckBunker();
+}
+
+function grCheckBunker() {
+  const type = state.chips['gr-type'] || '';
+  const isSand = type.startsWith('Sand');
+  const bunkerField = document.getElementById('gr-bunker-exit-field');
+  if (bunkerField) bunkerField.style.display = isSand ? 'block' : 'none';
+  // Show sand-specific cue if no release selected yet
+  const cueBox = document.getElementById('gr-cue-box');
+  if (isSand && !state.chips['gr-release'] && GR_CUES[type]) {
+    const cue = GR_CUES[type];
+    cueBox.style.display = 'block';
+    cueBox.style.background = cue.bg;
+    cueBox.style.color = cue.color;
+    cueBox.style.border = '1px solid ' + cue.color + '40';
+    cueBox.textContent = cue.text;
+  } else if (type === 'Pitch' && !state.chips['gr-release'] && GR_CUES['Pitch']) {
+    const cue = GR_CUES['Pitch'];
+    cueBox.style.display = 'block';
+    cueBox.style.background = cue.bg;
+    cueBox.style.color = cue.color;
+    cueBox.style.border = '1px solid ' + cue.color + '40';
+    cueBox.textContent = cue.text;
+  }
+}
+
+// ── LOG SHOT ──────────────────────────────────────────────────────────────
+function logShot(sess) {
+  let shot = { ts: new Date().toLocaleTimeString('en-AU', { hour:'2-digit', minute:'2-digit' }) };
+
+  if (sess === 'long') {
+    shot = { ...shot, club:getChip('long-club'), carry:getVal('long-carry'), total:getVal('long-total'),
+      offline:getSignedOffline(), fwy:getTog('long-fwy'), miss:getChip('long-miss'),
+      sway:getSignedSway('long-sway'), sg:getSignedSG('long-sg','long-sg-sign'), note:getVal('long-note') };
+    const n = document.getElementById('long-note'); if (n) n.value = '';
+
+  } else if (sess === 'approach') {
+    shot = { ...shot, club:getChip('approach-club'), target:getVal('app-target'), carry:getVal('app-carry'),
+      gir:getTog('app-gir'), prox:getVal('app-prox'), miss:getChip('app-miss'),
+      strike:getChip('app-strike'), sway:getSignedSway('app-sway'), sg:getSignedSG('app-sg','app-sg-sign'), note:getVal('app-note') };
+    const n = document.getElementById('app-note'); if (n) n.value = '';
+
+  } else if (sess === 'short') {
+    shot = { ...shot, type:getChip('sg-type'), club:getChip('short-club'), dist:getVal('sg-dist'),
+      prox:getVal('sg-prox'), release:getChip('sg-release'), address:getChip('sg-address'),
+      exit:getTog('sg-exit'), strike:getChip('sg-strike'), note:getVal('sg-note') };
+    const n = document.getElementById('sg-note'); if (n) n.value = '';
+
+  } else if (sess === 'putting') {
+    shot = { ...shot, dist:getChip('putt-dist'), make:getTog('putt-make'), total:getChip('putt-total'),
+      miss:getChip('putt-miss'), drill:getChip('putt-drill'),
+      slopeDir:getChip('putt-slope-dir'), slopePct:getChip('putt-slope-pct'),
+      note:getVal('putt-note') };
+    const n = document.getElementById('putt-note'); if (n) n.value = '';
+
+  } else if (sess === 'hackmotion') {
+    const hmFields = ['hm-top-ef','hm-top-ur','hm-imp-ef','hm-imp-ur','hm-imp-rot','hm-tim-ratio'];
+    const metrics = {};
+    hmFields.forEach(f => {
+      const rangeVal = state.chips[f] || null;
+      const dirVal = state.chips[f + '-dir'] || null;
+      metrics[f] = rangeVal ? { range: rangeVal, dir: rangeVal === 'out' ? dirVal : null } : null;
+    });
+    shot = { ...shot,
+      session: getChip('hm-sess'), dist: getChip('hm-dist'),
+      topEF: metrics['hm-top-ef'], topUR: metrics['hm-top-ur'],
+      impEF: metrics['hm-imp-ef'], impUR: metrics['hm-imp-ur'], impRot: metrics['hm-imp-rot'],
+      timRatio: metrics['hm-tim-ratio'],
+      timBack: getVal('hm-tim-back'), timDown: getVal('hm-tim-down'),
+      make: getTog('hm-make'), note: getVal('hm-note')
+    };
+    const n = document.getElementById('hm-note'); if (n) n.value = '';
+
+  } else if (sess === 'wedge') {
+    shot = { ...shot, club:getChip('wedge-club'), target:getVal('wdg-target'), carry:getVal('wdg-carry'),
+      pts:getVal('wdg-pts'), prox:getVal('wdg-prox'), miss:getChip('wdg-miss'),
+      strike:getChip('wdg-strike'), tech:getChip('wdg-tech'), note:getVal('wdg-note') };
+    const n = document.getElementById('wdg-note'); if (n) n.value = '';
+
+  } else if (sess === 'grieve') {
+    shot = { ...shot,
+      release:getChip('gr-release'), type:getChip('gr-type'), club:getChip('grieve-club'),
+      lie:getChip('gr-lie'), sternum:getChip('gr-sternum'), wrist:getChip('gr-wrist'),
+      weight:getChip('gr-weight'), shaftRet:getChip('gr-shaft-ret'),
+      ballPos:getChip('gr-ball-pos'), backswing:getChip('gr-backswing'),
+      releasePt:getChip('gr-release-pt'), grip:getChip('gr-grip'),
+      alignment:getChip('gr-alignment'), face:getChip('gr-face'), loftFin:getChip('gr-loft-fin'),
+      dist:getVal('gr-dist'), prox:getVal('gr-prox'),
+      flight:getChip('gr-flight'), strike:getChip('gr-strike'),
+      exit:getTog('gr-exit'), note:getVal('gr-note')
+    };
+    const n = document.getElementById('gr-note'); if (n) n.value = '';
+
+  } else if (sess === 'pitch') {
+    shot = { ...shot,
+      club:getChip('pitch-club'), addr:getChip('pitch-addr'),
+      carry:getVal('pitch-carry'), strike:getChip('pitch-strike'),
+      note:getVal('pitch-note')
+    };
+    const n = document.getElementById('pitch-note'); if (n) n.value = '';
+  }
+
+  state.shots[sess].push(shot);
+  saveToStorage();
+  updateStorageSummary();
+  updatePill(sess);
+  renderLog(sess);
+  toast('Logged');
+  window.scrollTo(0, 0);
+}
+
+// ── PILL ──────────────────────────────────────────────────────────────────
+function updatePill(sess) {
+  const n = state.shots[sess].length;
+  const el = document.getElementById('pill-' + sess);
+  if (el) el.textContent = n + ' ' + META[sess].unit;
+}
+
+// ── FORMAT SHOT ───────────────────────────────────────────────────────────
+function fmt(sess, s) {
+  const p = [];
+  const clean = v => (v || '').replace(/[✓]/g, '').trim();
+
+  if (sess === 'long') {
+    if (s.club) p.push(`<strong>${s.club}</strong>`);
+    if (s.carry) p.push(`Carry ${s.carry}m`);
+    if (s.total) p.push(`Total ${s.total}m`);
+    if (s.offline !== null && s.offline !== undefined) p.push(`Offline ${fmtOffline(s.offline)}`);
+    if (s.fwy) p.push(s.fwy === 'Y' ? '&#10003; Hit' : '&#10005; Miss');
+    if (s.miss && s.miss !== 'On target') p.push(s.miss);
+    if (s.sway !== null && s.sway !== undefined) p.push(`Sway ${fmtSway(s.sway)}`);
+    if (s.sg !== null && s.sg !== undefined) p.push(`SG ${s.sg >= 0 ? '+' : ''}${s.sg.toFixed(2)}`);
+
+  } else if (sess === 'approach') {
+    if (s.club) p.push(`<strong>${s.club}</strong>`);
+    if (s.target) p.push(`${s.target}m target`);
+    if (s.carry) p.push(`${s.carry}m carry`);
+    if (s.gir) p.push(s.gir === 'Y' ? '&#10003; GIR' : '&#10005; GIR');
+    if (s.prox) p.push(`${s.prox}m away`);
+    if (s.miss && s.miss !== 'On target') p.push(s.miss);
+    if (s.strike) p.push(`Strike: ${s.strike}`);
+    if (s.sway !== null && s.sway !== undefined) p.push(`Sway ${fmtSway(s.sway)}`);
+    if (s.sg !== null && s.sg !== undefined) p.push(`SG ${s.sg >= 0 ? '+' : ''}${s.sg.toFixed(2)}`);
+
+  } else if (sess === 'short') {
+    if (s.type) p.push(`<strong>${s.type}</strong>`);
+    if (s.club) p.push(s.club);
+    if (s.dist) p.push(`${s.dist}m`);
+    if (s.prox) p.push(`Prox ${s.prox}m`);
+    if (s.release) p.push(s.release);
+    if (s.address) p.push(s.address);
+    if (s.exit) p.push(s.exit === 'Y' ? 'Clean exit' : 'Stayed in');
+    if (s.strike) p.push(`Strike: ${s.strike}`);
+
+  } else if (sess === 'putting') {
+    if (s.dist) p.push(`<strong>${s.dist}</strong>`);
+    if (s.make) p.push(s.make === 'Y' ? '&#10003; Make' : '&#10005; Miss');
+    if (s.total) p.push(`${s.total}-putt`);
+    if (s.miss) p.push(s.miss);
+    if (s.slopeDir) p.push(s.slopeDir);
+    if (s.slopePct) p.push(s.slopePct);
+    if (s.drill) p.push(s.drill);
+
+  } else if (sess === 'hackmotion') {
+    if (s.session) p.push(`<strong>${s.session}</strong>`);
+    if (s.dist) p.push(s.dist);
+    const hmLabels = [
+      ['topEF','Top E/F'], ['topUR','Top U/R'],
+      ['impEF','Imp E/F'], ['impUR','Imp U/R'], ['impRot','Imp Rot'],
+      ['timRatio','Ratio']
+    ];
+    hmLabels.forEach(([key, label]) => {
+      const m = s[key];
+      if (m) p.push(`${label}: ${m.range === 'in' ? '&#10003;' : (m.dir || 'OOR')}`);
+    });
+    if (s.timBack) p.push(`Back ${s.timBack}s`);
+    if (s.timDown) p.push(`Down ${s.timDown}s`);
+    if (s.make) p.push(s.make === 'Y' ? '&#10003; Make' : '&#10005; Miss');
+
+  } else if (sess === 'wedge') {
+    if (s.club) p.push(`<strong>${s.club}</strong>`);
+    if (s.target) p.push(`${s.target}m target`);
+    if (s.carry) p.push(`${s.carry}m carry`);
+    if (s.pts) p.push(`${s.pts} pts`);
+    if (s.prox) p.push(`Prox ${s.prox}m`);
+    if (s.miss && s.miss !== 'On target') p.push(s.miss);
+    if (s.strike) p.push(`Strike: ${s.strike}`);
+    if (s.tech) p.push(clean(s.tech));
+
+  } else if (sess === 'grieve') {
+    if (s.release) p.push(`<strong>${s.release}</strong>`);
+    if (s.type) p.push(s.type);
+    if (s.club) p.push(s.club);
+    if (s.lie) p.push(`Lie: ${s.lie}`);
+    if (s.dist) p.push(`${s.dist}m`);
+    if (s.prox) p.push(`Prox ${s.prox}m`);
+    if (s.sternum) p.push(`Stm: ${clean(s.sternum)}`);
+    if (s.ballPos && !s.ballPos.includes('Central')) p.push(`Ball: ${clean(s.ballPos)}`);
+    if (s.alignment && !s.alignment.includes('left / face right')) p.push(`Aim: ${clean(s.alignment)}`);
+    if (s.releasePt) p.push(`Rel: ${clean(s.releasePt)}`);
+    if (s.weight && !s.weight.includes('stayed left')) p.push(`Wt: ${clean(s.weight)}`);
+    if (s.loftFin && !s.loftFin.includes('on')) p.push(clean(s.loftFin));
+    if (s.flight && !s.flight.includes('intended')) p.push(s.flight);
+    if (s.strike) p.push(`Strike: ${clean(s.strike)}`);
+    if (s.exit) p.push(s.exit === 'Y' ? '&#10003; Exit' : '&#10005; Stayed in');
+
+  } else if (sess === 'pitch') {
+    if (s.club) p.push(`<strong>${s.club}</strong>`);
+    if (s.addr) p.push(s.addr.split('—')[0].trim());
+    if (s.carry) p.push(`${s.carry}m carry`);
+    if (s.strike && !s.strike.includes('Clean')) p.push(`Strike: ${s.strike}`);
+  }
+
+  if (s.note) p.push(`<em>${s.note}</em>`);
+  return p.join(' &middot; ');
+}
+
+// ── SUMMARY ───────────────────────────────────────────────────────────────
+function mkStat(val, lab) {
+  return `<div style="text-align:center"><div class="stat-val">${val}</div><div class="stat-lab">${lab}</div></div>`;
+}
+
+function avg(arr) {
+  if (!arr.length) return null;
+  return Math.round(arr.reduce((a,b) => a+b, 0) / arr.length * 10) / 10;
+}
+
+function pct(num, den) {
+  if (!den) return null;
+  return Math.round(num / den * 100);
+}
+
+function parseSG(v) {
+  if (v == null) return null;
+  const n = parseFloat(String(v).replace(/[^\d.\-+]/g, ''));
+  return isNaN(n) ? null : n;
+}
+
+function avgSG(shots) {
+  const vals = shots.map(s => {
+    if (s.sg === null || s.sg === undefined) return null;
+    const n = typeof s.sg === 'number' ? s.sg : parseSG(s.sg);
+    return n;
+  }).filter(v => v !== null);
+  if (!vals.length) return null;
+  return Math.round(vals.reduce((a,b) => a+b, 0) / vals.length * 100) / 100;
+}
+
+function medianSway(shots) {
+  const vals = shots.map(s => s.sway).filter(v => v !== null && v !== undefined && typeof v === 'number');
+  if (!vals.length) return null;
+  const sorted = [...vals].sort((a,b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? Math.round((sorted[mid-1] + sorted[mid]) / 2 * 10) / 10
+    : sorted[mid];
+}
+
+function fmtSG(v) {
+  if (v === null) return '—';
+  return (v >= 0 ? '+' : '') + v.toFixed(2);
+}
+
+function sgColor(v) {
+  if (v === null) return 'var(--text-3)';
+  return v >= 0 ? 'var(--green)' : 'var(--red)';
+}
+
+function missDist(shots) {
+  const dirs = ['Left','Right','Short','Long','On target'];
+  const withMiss = shots.filter(s => s.miss);
+  if (!withMiss.length) return null;
+  return dirs.map(d => {
+    const n = withMiss.filter(s => s.miss === d).length;
+    return { d, n, p: Math.round(n / withMiss.length * 100) };
+  }).filter(r => r.n > 0);
+}
+
+function missTable(rows, label) {
+  if (!rows || !rows.length) return '';
+  const cells = rows.map(r =>
+    `<span style="display:inline-flex;align-items:center;gap:4px;margin:2px 6px 2px 0;font-size:12px;color:var(--text-2)">
+      <span style="font-weight:600;color:var(--text)">${r.p}%</span>${r.d}
+    </span>`
+  ).join('');
+  return `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">${label}</div>
+    <div style="line-height:1.8">${cells}</div>
+  </div>`;
+}
+
+function swayDist(shots) {
+  const logged = shots.filter(s => s.sway !== null && s.sway !== undefined && typeof s.sway === 'number');
+  if (!logged.length) return null;
+  const neg = logged.filter(s => s.sway < 0).length;
+  const neu = logged.filter(s => s.sway === 0).length;
+  const pos = logged.filter(s => s.sway > 0).length;
+  const n = logged.length;
+  return { neg, neu, pos, n,
+    negPct: Math.round(neg/n*100), neuPct: Math.round(neu/n*100), posPct: Math.round(pos/n*100) };
+}
+
+function swayTable(d) {
+  if (!d) return '';
+  return `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px">Sway gap distribution (${d.n} logged)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">
+      <div style="background:var(--green-light,#e6f5ec);border-radius:8px;padding:8px 4px">
+        <div style="font-size:18px;font-weight:700;color:var(--green)">${d.negPct}%</div>
+        <div style="font-size:11px;color:var(--text-2);margin-top:2px">Negative (${d.neg})</div>
+      </div>
+      <div style="background:var(--surface-2);border-radius:8px;padding:8px 4px">
+        <div style="font-size:18px;font-weight:700;color:var(--accent)">${d.neuPct}%</div>
+        <div style="font-size:11px;color:var(--text-2);margin-top:2px">Neutral (${d.neu})</div>
+      </div>
+      <div style="background:var(--red-light,#fbeae8);border-radius:8px;padding:8px 4px">
+        <div style="font-size:18px;font-weight:700;color:var(--red)">${d.posPct}%</div>
+        <div style="font-size:11px;color:var(--text-2);margin-top:2px">Positive (${d.pos})</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function summary(sess, shots) {
+  if (!shots.length) return '';
+  const stats = [];
+
+  if (sess === 'approach') {
+    const withGIR = shots.filter(s => s.gir);
+    const girPct = pct(withGIR.filter(s => s.gir === 'Y').length, withGIR.length);
+    const proxA = avg(shots.filter(s => s.prox).map(s => parseFloat(s.prox)));
+    const toes = shots.filter(s => s.strike === 'Toe').length;
+    const medSway = medianSway(shots);
+    const sgA = avgSG(shots);
+    if (girPct !== null) stats.push(mkStat(girPct + '%', 'GIR'));
+    if (proxA !== null) stats.push(mkStat(proxA + 'm', 'Avg proximity'));
+    if (sgA !== null) stats.push(mkStat(fmtSG(sgA), 'Avg SG/shot'));
+    if (medSway !== null) stats.push(mkStat(fmtSway(medSway), 'Median sway'));
+    if (toes) stats.push(mkStat(toes, 'Toe strikes'));
+    stats.push(mkStat(shots.length, 'Total shots'));
+
+    const totalMiss = missDist(shots);
+
+    const clubs = [...new Set(shots.filter(s => s.club).map(s => s.club))];
+    const clubRows = clubs.map(cl => {
+      const cs = shots.filter(s => s.club === cl);
+      const cAvg = avgSG(cs);
+      const cProx = avg(cs.filter(s => s.prox).map(s => parseFloat(s.prox)));
+      const cGirShots = cs.filter(s => s.gir);
+      const cGir = cGirShots.length ? Math.round(cGirShots.filter(s => s.gir === 'Y').length / cGirShots.length * 100) : null;
+      const cMedSway = medianSway(cs);
+      const cMiss = missDist(cs);
+      const missCell = cMiss ? cMiss.map(r => `${r.p}%&nbsp;${r.d}`).join(' / ') : '—';
+      const swayColor = cMedSway === null ? 'var(--text-3)' : cMedSway < 0 ? 'var(--green)' : cMedSway === 0 ? 'var(--accent)' : 'var(--red)';
+      return `<tr>
+        <td style="padding:5px 8px 5px 0;font-weight:600;color:var(--text);font-size:13px;white-space:nowrap">${cl}</td>
+        <td style="padding:5px 4px;text-align:center;font-size:13px;color:var(--text-2)">${cs.length}</td>
+        <td style="padding:5px 4px;text-align:center;font-size:13px;color:var(--text-2)">${cGir !== null ? cGir + '%' : '—'}</td>
+        <td style="padding:5px 4px;text-align:center;font-size:13px;color:var(--text-2)">${cProx !== null ? cProx + 'm' : '—'}</td>
+        <td style="padding:5px 4px;text-align:right;font-size:13px;font-weight:600;color:${sgColor(cAvg)}">${fmtSG(cAvg)}</td>
+        <td style="padding:5px 4px;text-align:right;font-size:13px;font-weight:600;color:${swayColor}">${cMedSway !== null ? fmtSway(cMedSway) : '—'}</td>
+        <td style="padding:5px 0 5px 4px;font-size:11px;color:var(--text-2)">${missCell}</td>
+      </tr>`;
+    }).join('');
+
+    if (clubRows) {
+      return `<div class="summary">
+        <div class="summary-title">Session summary</div>
+        <div class="stat-grid">${stats.join('')}</div>
+        ${swayTable(swayDist(shots))}
+        ${missTable(totalMiss, 'Miss direction — all shots')}
+        <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+          <div class="summary-title" style="margin-bottom:8px">By club</div>
+          <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;min-width:380px">
+            <thead><tr>
+              <th style="padding:4px 8px 4px 0;text-align:left;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">CLUB</th>
+              <th style="padding:4px;text-align:center;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">N</th>
+              <th style="padding:4px;text-align:center;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">GIR%</th>
+              <th style="padding:4px;text-align:center;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">PROX</th>
+              <th style="padding:4px;text-align:right;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">SG</th>
+              <th style="padding:4px;text-align:right;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">SWAY</th>
+              <th style="padding:4px 0 4px 4px;text-align:left;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">MISS</th>
+            </tr></thead>
+            <tbody>${clubRows}</tbody>
+          </table>
+          </div>
+        </div>
+      </div>`;
+    }
+
+  } else if (sess === 'putting') {
+    const makes = shots.filter(s => s.make === 'Y').length;
+    const threes = shots.filter(s => s.total === '3+').length;
+    const threePct = pct(threes, shots.filter(s => s.dist && ['20ft','25ft','30ft','40ft+'].includes(s.dist)).length);
+    stats.push(mkStat(pct(makes, shots.length) + '%', 'Make rate'));
+    stats.push(mkStat(threes + (threePct !== null ? ' (' + threePct + '%)' : ''), '3-putts'));
+    stats.push(mkStat(makes + '/' + shots.length, 'Putts'));
+
+    // Under 20ft: make rate table
+    const shortDists = ['3ft','4ft','6ft','10ft','12ft','15ft'];
+    const shortRows = shortDists.map(d => {
+      const ds = shots.filter(s => s.dist === d);
+      if (!ds.length) return null;
+      const dm = ds.filter(s => s.make === 'Y').length;
+      const dp = Math.round(dm / ds.length * 100);
+      const color = dp >= 80 ? 'var(--green)' : dp >= 50 ? 'var(--amber)' : 'var(--red)';
+      return `<tr>
+        <td style="padding:5px 8px 5px 0;font-size:13px;font-weight:600;color:var(--text)">${d}</td>
+        <td style="padding:5px 4px;text-align:center;font-size:13px;color:var(--text-2)">${ds.length}</td>
+        <td style="padding:5px 4px;text-align:center;font-size:13px;color:var(--text-2)">${dm}/${ds.length}</td>
+        <td style="padding:5px 0 5px 4px;text-align:right;font-size:13px;font-weight:700;color:${color}">${dp}%</td>
+      </tr>`;
+    }).filter(Boolean).join('');
+
+    // 20ft and over: 3-putt % table
+    const longDists = ['20ft','25ft','30ft','40ft+'];
+    const longRows = longDists.map(d => {
+      const ds = shots.filter(s => s.dist === d);
+      if (!ds.length) return null;
+      const threeP = ds.filter(s => s.total === '3+').length;
+      const tp = Math.round(threeP / ds.length * 100);
+      const color = tp === 0 ? 'var(--green)' : tp <= 25 ? 'var(--amber)' : 'var(--red)';
+      return `<tr>
+        <td style="padding:5px 8px 5px 0;font-size:13px;font-weight:600;color:var(--text)">${d}</td>
+        <td style="padding:5px 4px;text-align:center;font-size:13px;color:var(--text-2)">${ds.length}</td>
+        <td style="padding:5px 4px;text-align:center;font-size:13px;color:var(--text-2)">${threeP}</td>
+        <td style="padding:5px 0 5px 4px;text-align:right;font-size:13px;font-weight:700;color:${color}">${tp}%</td>
+      </tr>`;
+    }).filter(Boolean).join('');
+
+    return `<div class="summary">
+      <div class="summary-title">Session summary</div>
+      <div class="stat-grid">${stats.join('')}</div>
+      ${shortRows ? `<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+        <div class="summary-title" style="margin-bottom:8px">Make rate — under 20ft</div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr>
+            <th style="padding:4px 8px 4px 0;text-align:left;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">DIST</th>
+            <th style="padding:4px;text-align:center;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">PUTTS</th>
+            <th style="padding:4px;text-align:center;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">MADE</th>
+            <th style="padding:4px 0 4px 4px;text-align:right;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">MAKE%</th>
+          </tr></thead>
+          <tbody>${shortRows}</tbody>
+        </table>
+      </div>` : ''}
+      ${longRows ? `<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+        <div class="summary-title" style="margin-bottom:8px">3-putt % — 20ft and over</div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr>
+            <th style="padding:4px 8px 4px 0;text-align:left;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">DIST</th>
+            <th style="padding:4px;text-align:center;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">PUTTS</th>
+            <th style="padding:4px;text-align:center;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">3-PUTTS</th>
+            <th style="padding:4px 0 4px 4px;text-align:right;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">3-PUTT%</th>
+          </tr></thead>
+          <tbody>${longRows}</tbody>
+        </table>
+      </div>` : ''}
+    </div>`;
+
+  } else if (sess === 'short') {
+    const proxA = avg(shots.filter(s => s.prox).map(s => parseFloat(s.prox)));
+    const bunkers = shots.filter(s => s.type === 'Bunker');
+    const cleanEx = bunkers.filter(s => s.exit === 'Y').length;
+    const toes = shots.filter(s => s.strike === 'Toe').length;
+    if (proxA !== null) stats.push(mkStat(proxA + 'm', 'Avg proximity'));
+    if (bunkers.length) stats.push(mkStat(cleanEx + '/' + bunkers.length, 'Bunker exits'));
+    if (toes) stats.push(mkStat(toes, 'Toe strikes'));
+    stats.push(mkStat(shots.length, 'Total shots'));
+
+    // ── helper: small prox table ─────────────────────────────────────────────
+    function proxRow(label, subset, extraCol, extraHdr) {
+      if (!subset.length) return '';
+      const a = avg(subset.filter(s => s.prox).map(s => parseFloat(s.prox)));
+      const extra = extraCol ? `<td style="padding:5px 4px;text-align:center;font-size:12px;color:var(--text-2)">${extraCol}</td>` : '';
+      return `<tr>
+        <td style="padding:5px 8px 5px 0;font-size:12px;color:var(--text-2)">${label}</td>
+        <td style="padding:5px 4px;text-align:center;font-size:12px;color:var(--text-2)">${subset.length}</td>
+        ${extra}
+        <td style="padding:5px 0 5px 4px;text-align:right;font-size:12px;font-weight:600;color:var(--text)">${a !== null ? a + 'm' : '—'}</td>
+      </tr>`;
+    }
+
+    function miniTable(hdr, rows, extraHdr) {
+      if (!rows.filter(Boolean).join('')) return '';
+      const extraTh = extraHdr ? `<th style="padding:3px 4px;text-align:center;font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.05em">${extraHdr}</th>` : '';
+      return `<table style="width:100%;border-collapse:collapse;margin-bottom:12px">
+        <thead><tr>
+          <th style="padding:3px 8px 3px 0;text-align:left;font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.05em">${hdr}</th>
+          <th style="padding:3px 4px;text-align:center;font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.05em">N</th>
+          ${extraTh}
+          <th style="padding:3px 0 3px 4px;text-align:right;font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.05em">AVG PROX</th>
+        </tr></thead>
+        <tbody>${rows.filter(Boolean).join('')}</tbody>
+      </table>`;
+    }
+
+    function sectionHdr(label, n, avgP) {
+      return `<div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px;display:flex;justify-content:space-between">
+        <span>${label}</span>
+        <span style="font-weight:400;color:var(--text-2)">${n} shots${avgP !== null ? ' &middot; avg <strong style="color:var(--text)">' + avgP + 'm</strong>' : ''}</span>
+      </div>`;
+    }
+
+    // ── BY TYPE ──────────────────────────────────────────────────────────────
+    const types = [...new Set(shots.filter(s => s.type).map(s => s.type))];
+    const byTypeRows = types.map(t => {
+      const ts = shots.filter(s => s.type === t);
+      const isBunker = t === 'Bunker';
+      const exits = isBunker ? ts.filter(s => s.exit === 'Y').length : null;
+      const exitStr = isBunker ? `${exits}/${ts.length} exits` : null;
+      return proxRow(t, ts, exitStr, isBunker ? 'EXITS' : null);
+    });
+    const byTypeSection = miniTable('SHOT TYPE', byTypeRows, null);
+
+    // ── BY CLUB ───────────────────────────────────────────────────────────────
+    const clubs = [...new Set(shots.filter(s => s.club).map(s => s.club))];
+    const byClubRows = clubs.map(cl => {
+      const cs = shots.filter(s => s.club === cl);
+      return proxRow(cl, cs, null, null);
+    });
+    const byClubSection = miniTable('CLUB', byClubRows, null);
+
+    // ── BY DISTANCE BAND ─────────────────────────────────────────────────────
+    const distBands = [
+      ['<10m',  s => { const d = parseFloat(s.dist); return !isNaN(d) && d < 10; }],
+      ['10-20m',s => { const d = parseFloat(s.dist); return !isNaN(d) && d >= 10 && d < 20; }],
+      ['20-30m',s => { const d = parseFloat(s.dist); return !isNaN(d) && d >= 20 && d < 30; }],
+      ['30-45m',s => { const d = parseFloat(s.dist); return !isNaN(d) && d >= 30 && d <= 45; }],
+      ['>45m',  s => { const d = parseFloat(s.dist); return !isNaN(d) && d > 45; }],
+    ];
+    const byDistRows = distBands.map(([lbl, fn]) => {
+      const ds = shots.filter(fn);
+      return ds.length ? proxRow(lbl, ds, null, null) : null;
+    });
+    const byDistSection = miniTable('DISTANCE BAND', byDistRows.filter(Boolean), null);
+
+    // ── BY RELEASE (non-pitch) ────────────────────────────────────────────────
+    const releases = ['R1 — Chip & Run','R2 — Soft Landing','R3 — Lob Shot'];
+    const byRelRows = releases.map(r => {
+      const rs = shots.filter(s => s.release === r);
+      return rs.length ? proxRow(r.split('—')[0].trim(), rs, null, null) : null;
+    });
+
+    // ── BY ADDRESS (pitch) ────────────────────────────────────────────────────
+    const addresses = ['A1 — Short','A2 — Mid','A3 — Long'];
+    const byAddrRows = addresses.map(a => {
+      const as = shots.filter(s => s.address === a);
+      return as.length ? proxRow(a.split('—')[0].trim(), as, null, null) : null;
+    });
+
+    const byReleaseSection = (byRelRows.some(Boolean) || byAddrRows.some(Boolean))
+      ? `${miniTable('RELEASE', byRelRows.filter(Boolean), null)}${miniTable('PITCH ADDRESS', byAddrRows.filter(Boolean), null)}`
+      : '';
+
+    // ── BY CLUB × RELEASE (non-pitch) ────────────────────────────────────────
+    const crCombos = [];
+    clubs.forEach(cl => {
+      releases.forEach(r => {
+        const s = shots.filter(x => x.club === cl && x.release === r);
+        if (s.length) {
+          const a = avg(s.filter(x => x.prox).map(x => parseFloat(x.prox)));
+          crCombos.push(`<tr>
+            <td style="padding:5px 8px 5px 0;font-size:12px;color:var(--text-2)">${cl}</td>
+            <td style="padding:5px 4px;font-size:12px;color:var(--text-2)">${r.split('—')[0].trim()}</td>
+            <td style="padding:5px 4px;text-align:center;font-size:12px;color:var(--text-2)">${s.length}</td>
+            <td style="padding:5px 0 5px 4px;text-align:right;font-size:12px;font-weight:600;color:var(--text)">${a !== null ? a + 'm' : '—'}</td>
+          </tr>`);
+        }
+      });
+    });
+    const byClubRelSection = crCombos.length ? `<table style="width:100%;border-collapse:collapse;margin-bottom:12px">
+      <thead><tr>
+        <th style="padding:3px 8px 3px 0;text-align:left;font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.05em">CLUB</th>
+        <th style="padding:3px 4px;text-align:left;font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.05em">RELEASE</th>
+        <th style="padding:3px 4px;text-align:center;font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.05em">N</th>
+        <th style="padding:3px 0 3px 4px;text-align:right;font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.05em">AVG PROX</th>
+      </tr></thead>
+      <tbody>${crCombos.join('')}</tbody>
+    </table>` : '';
+
+    return `<div class="summary">
+      <div class="summary-title">Session summary</div>
+      <div class="stat-grid">${stats.join('')}</div>
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+        <div class="summary-title" style="margin-bottom:10px">Proximity breakdown</div>
+        ${byTypeSection}
+        ${byClubSection}
+        ${byDistSection}
+        ${byReleaseSection}
+        ${byClubRelSection ? `<div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">CLUB × RELEASE</div>${byClubRelSection}` : ''}
+      </div>
+    </div>`;
+
+
+  } else if (sess === 'hackmotion') {
+    const makes = shots.filter(s => s.make === 'Y').length;
+    const makePct = pct(makes, shots.length);
+    if (makePct !== null) stats.push(mkStat(makePct + '%', 'Make rate'));
+    stats.push(mkStat(makes + '/' + shots.length, 'Makes'));
+
+    // In-range percentages for each metric
+    const hmMetrics = [
+      { key: 'topEF',    label: 'Top: Ext/Flex' },
+      { key: 'topUR',    label: 'Top: Uln/Rad' },
+      { key: 'impEF',    label: 'Imp: Ext/Flex' },
+      { key: 'impUR',    label: 'Imp: Uln/Rad' },
+      { key: 'impRot',   label: 'Imp: Rotation' },
+      { key: 'timRatio', label: 'Timing: Ratio' },
+    ];
+
+    const metricRows = hmMetrics.map(({ key, label }) => {
+      const logged = shots.filter(s => s[key] != null);
+      if (!logged.length) return null;
+      const inRange = logged.filter(s => s[key].range === 'in').length;
+      const pctVal = Math.round(inRange / logged.length * 100);
+      const color = pctVal >= 80 ? 'var(--green)' : pctVal >= 50 ? 'var(--amber)' : 'var(--red)';
+      const barW = pctVal;
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:12px;color:var(--text-2)">${label}</span>
+          <span style="font-size:12px;font-weight:700;color:${color}">${pctVal}% in range <span style="font-weight:400;color:var(--text-3)">(${inRange}/${logged.length})</span></span>
+        </div>
+        <div style="height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${barW}%;background:${color};border-radius:3px;transition:width .3s"></div>
+        </div>
+      </div>`;
+    }).filter(Boolean).join('');
+
+    // Timing averages
+    const backVals = shots.filter(s => s.timBack).map(s => parseFloat(s.timBack)).filter(v => !isNaN(v));
+    const downVals = shots.filter(s => s.timDown).map(s => parseFloat(s.timDown)).filter(v => !isNaN(v));
+    const avgBack = backVals.length ? Math.round(backVals.reduce((a,b) => a+b,0) / backVals.length * 100) / 100 : null;
+    const avgDown = downVals.length ? Math.round(downVals.reduce((a,b) => a+b,0) / downVals.length * 100) / 100 : null;
+
+    // Make rate by distance
+    const dists = ['3ft','4ft','6ft','10ft'];
+    const distRows = dists.map(d => {
+      const ds = shots.filter(s => s.dist === d);
+      if (!ds.length) return null;
+      const dm = ds.filter(s => s.make === 'Y').length;
+      const dp = Math.round(dm / ds.length * 100);
+      return `<tr>
+        <td style="padding:5px 8px 5px 0;font-size:13px;font-weight:600;color:var(--text)">${d}</td>
+        <td style="padding:5px 4px;text-align:center;font-size:13px;color:var(--text-2)">${ds.length}</td>
+        <td style="padding:5px 4px;text-align:center;font-size:13px;color:var(--text-2)">${dm}</td>
+        <td style="padding:5px 0 5px 4px;text-align:right;font-size:13px;font-weight:700;color:${dp >= 80 ? 'var(--green)' : dp >= 50 ? 'var(--amber)' : 'var(--red)'}">${dp}%</td>
+      </tr>`;
+    }).filter(Boolean).join('');
+
+    return `<div class="summary">
+      <div class="summary-title">Session summary</div>
+      <div class="stat-grid">${stats.join('')}</div>
+      ${metricRows ? `<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+        <div class="summary-title" style="margin-bottom:10px">Metrics in range</div>
+        ${metricRows}
+      </div>` : ''}
+      ${avgBack !== null || avgDown !== null ? `<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;display:flex;gap:16px">
+        ${avgBack !== null ? `<div><div style="font-size:18px;font-weight:700;color:var(--text)">${avgBack}s</div><div style="font-size:11px;color:var(--text-3)">Avg backstroke</div></div>` : ''}
+        ${avgDown !== null ? `<div><div style="font-size:18px;font-weight:700;color:var(--text)">${avgDown}s</div><div style="font-size:11px;color:var(--text-3)">Avg downstroke</div></div>` : ''}
+        ${avgBack !== null && avgDown !== null ? `<div><div style="font-size:18px;font-weight:700;color:var(--text)">${Math.round(avgBack/avgDown*100)/100}</div><div style="font-size:11px;color:var(--text-3)">Avg ratio</div></div>` : ''}
+      </div>` : ''}
+      ${distRows ? `<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+        <div class="summary-title" style="margin-bottom:8px">Make rate by distance</div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr>
+            <th style="padding:4px 8px 4px 0;text-align:left;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">DIST</th>
+            <th style="padding:4px;text-align:center;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">PUTTS</th>
+            <th style="padding:4px;text-align:center;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">MAKES</th>
+            <th style="padding:4px 0 4px 4px;text-align:right;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">MAKE%</th>
+          </tr></thead>
+          <tbody>${distRows}</tbody>
+        </table>
+      </div>` : ''}
+    </div>`;
+
+  } else if (sess === 'wedge') {
+    const proxA = avg(shots.filter(s => s.prox).map(s => parseFloat(s.prox)));
+    const ptsA = avg(shots.filter(s => s.pts).map(s => parseFloat(s.pts)));
+    const toes = shots.filter(s => s.strike === 'Toe').length;
+    if (proxA !== null) stats.push(mkStat(proxA + 'm', 'Avg proximity'));
+    if (ptsA !== null) stats.push(mkStat(Math.round(ptsA), 'Avg Stack Pts'));
+    if (toes) stats.push(mkStat(toes, 'Toe strikes'));
+    stats.push(mkStat(shots.length, 'Total shots'));
+
+  } else if (sess === 'long') {
+    const carryA = avg(shots.filter(s => s.carry).map(s => parseFloat(s.carry)));
+    const withFwy = shots.filter(s => s.fwy);
+    const hitPct = pct(withFwy.filter(s => s.fwy === 'Y').length, withFwy.length);
+    const medSway = medianSway(shots);
+    const medOff = medianOffline(shots);
+    const sgA = avgSG(shots);
+    if (carryA !== null) stats.push(mkStat(carryA + 'm', 'Avg carry'));
+    if (hitPct !== null) stats.push(mkStat(hitPct + '%', 'On target'));
+    if (sgA !== null) stats.push(mkStat(fmtSG(sgA), 'Avg SG/shot'));
+    if (medSway !== null) stats.push(mkStat(fmtSway(medSway), 'Median sway'));
+    if (medOff !== null) stats.push(mkStat(fmtOffline(medOff), 'Median offline'));
+
+    const totalMiss = missDist(shots);
+
+    const clubs = [...new Set(shots.filter(s => s.club).map(s => s.club))];
+    const clubRows = clubs.map(cl => {
+      const cs = shots.filter(s => s.club === cl);
+      const cAvg = avgSG(cs);
+      const cCarry = avg(cs.filter(s => s.carry).map(s => parseFloat(s.carry)));
+      const cMedSway = medianSway(cs);
+      const cMedOff = medianOffline(cs);
+      const cMiss = missDist(cs);
+      const missCell = cMiss ? cMiss.map(r => `${r.p}%&nbsp;${r.d}`).join(' / ') : '—';
+      const swayColor = cMedSway === null ? 'var(--text-3)' : cMedSway < 0 ? 'var(--green)' : cMedSway === 0 ? 'var(--accent)' : 'var(--red)';
+      const offColor = cMedOff === null ? 'var(--text-3)' : 'var(--text)';
+      return `<tr>
+        <td style="padding:5px 8px 5px 0;font-weight:600;color:var(--text);font-size:13px;white-space:nowrap">${cl}</td>
+        <td style="padding:5px 4px;text-align:center;font-size:13px;color:var(--text-2)">${cs.length}</td>
+        <td style="padding:5px 4px;text-align:center;font-size:13px;color:var(--text-2)">${cCarry !== null ? cCarry + 'm' : '—'}</td>
+        <td style="padding:5px 4px;text-align:right;font-size:13px;font-weight:600;color:${sgColor(cAvg)}">${fmtSG(cAvg)}</td>
+        <td style="padding:5px 4px;text-align:right;font-size:13px;font-weight:600;color:${swayColor}">${cMedSway !== null ? fmtSway(cMedSway) : '—'}</td>
+        <td style="padding:5px 4px;text-align:right;font-size:13px;font-weight:500;color:${offColor}">${cMedOff !== null ? fmtOffline(cMedOff) : '—'}</td>
+        <td style="padding:5px 0 5px 4px;font-size:11px;color:var(--text-2)">${missCell}</td>
+      </tr>`;
+    }).join('');
+
+    if (clubRows) {
+      return `<div class="summary">
+        <div class="summary-title">Session summary</div>
+        <div class="stat-grid">${stats.join('')}</div>
+        ${swayTable(swayDist(shots))}
+        ${missTable(totalMiss, 'Miss direction — all shots')}
+        <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+          <div class="summary-title" style="margin-bottom:8px">By club</div>
+          <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;min-width:360px">
+            <thead><tr>
+              <th style="padding:4px 8px 4px 0;text-align:left;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">CLUB</th>
+              <th style="padding:4px;text-align:center;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">N</th>
+              <th style="padding:4px;text-align:center;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">CARRY</th>
+              <th style="padding:4px;text-align:right;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">SG</th>
+              <th style="padding:4px;text-align:right;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">SWAY</th>
+              <th style="padding:4px;text-align:right;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">OFFLINE</th>
+              <th style="padding:4px 0 4px 4px;text-align:left;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.06em">MISS</th>
+            </tr></thead>
+            <tbody>${clubRows}</tbody>
+          </table>
+          </div>
+        </div>
+      </div>`;
+    }
+  }
+
+  if (sess === 'grieve') {
+    const total = shots.length;
+    const proxVals = shots.filter(s => s.prox).map(s => parseFloat(s.prox));
+    const avgProx = proxVals.length ? Math.round(proxVals.reduce((a,b)=>a+b,0)/proxVals.length*10)/10 : null;
+    const cleanStrikes = shots.filter(s => s.strike && s.strike.includes('Clean')).length;
+    const intendedFlight = shots.filter(s => s.flight && s.flight.includes('intended')).length;
+    const bunkerShots = shots.filter(s => s.type === 'Bunker');
+    const bunkerExits = bunkerShots.filter(s => s.exit === 'Y').length;
+    if (avgProx !== null) stats.push(mkStat(avgProx + 'm', 'Avg proximity'));
+    stats.push(mkStat(cleanStrikes + '/' + total, 'Clean strikes'));
+    if (total) stats.push(mkStat(Math.round(intendedFlight/total*100) + '%', 'Flight as intended'));
+    if (bunkerShots.length) stats.push(mkStat(bunkerExits + '/' + bunkerShots.length, 'Bunker exits'));
+
+    // Breakdown by release
+    const releases = ['R1 — Chip & Run','R2 — Soft Landing','R3 — Lob Shot'];
+    const relColors = { 'R1 — Chip & Run': '#1a4620', 'R2 — Soft Landing': '#1a3a70', 'R3 — Lob Shot': '#6b1a1a' };
+    const relBg    = { 'R1 — Chip & Run': '#e6f5ec', 'R2 — Soft Landing': '#e0eafa', 'R3 — Lob Shot': '#fae6e6' };
+    const relRows = releases.map(rel => {
+      const rs = shots.filter(s => s.release === rel);
+      if (!rs.length) return null;
+      const rProx = rs.filter(s => s.prox).map(s => parseFloat(s.prox));
+      const rAvg = rProx.length ? Math.round(rProx.reduce((a,b)=>a+b,0)/rProx.length*10)/10 : null;
+      const rClean = rs.filter(s => s.strike && s.strike.includes('Clean')).length;
+      const rIntended = rs.filter(s => s.flight && s.flight.includes('intended')).length;
+      const col = relColors[rel]; const bg = relBg[rel];
+      // Collect wrong release points
+      const wrongRel = rs.filter(s => s.releasePt && !s.releasePt.includes('\u2713')).length;
+      return `<div style="background:${bg};border-radius:8px;padding:10px 12px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+          <span style="font-size:12px;font-weight:700;color:${col}">${rel.split('—')[0].trim()}</span>
+          <span style="font-size:11px;color:var(--text-2)">${rs.length} shots${rAvg !== null ? ' · ' + rAvg + 'm avg prox' : ''}</span>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div style="font-size:12px;color:var(--text-2)">Clean strikes: <strong style="color:${col}">${rClean}/${rs.length}</strong></div>
+          <div style="font-size:12px;color:var(--text-2)">Flight OK: <strong style="color:${col}">${rIntended}/${rs.length}</strong></div>
+          ${wrongRel ? `<div style="font-size:12px;color:var(--red)">Wrong release point: ${wrongRel}</div>` : ''}
+        </div>
+      </div>`;
+    }).filter(Boolean).join('');
+
+    // Wrong release / lie mismatches
+    // Mismatch checks based on checklist rules
+    const r3HardPan = shots.filter(s => s.release && s.release.startsWith('R3') && s.lie && (s.lie.includes('Hard') || s.lie.includes('buried'))).length;
+    const r2BadLie  = shots.filter(s => s.release && s.release.startsWith('R2') && s.lie && (s.lie.includes('sitting') || s.lie.includes('Hard'))).length;
+    // Standard sand should use R2, not R3
+    const sandWrongRelease = shots.filter(s => s.type === 'Sand — Standard' && s.release && !s.release.startsWith('R2')).length;
+    // Compact sand should use R1
+    const compactWrong = shots.filter(s => s.type === 'Sand — Compact' && s.release && !s.release.startsWith('R1')).length;
+    // Deep sand should use R3
+    const deepWrong = shots.filter(s => s.type === 'Sand — Deep' && s.release && !s.release.startsWith('R3')).length;
+    const mismatches = [];
+    if (r3HardPan) mismatches.push(`R3 on hard pan/buried (${r3HardPan})`);
+    if (r2BadLie) mismatches.push(`R2 on sitting-down/hard pan (${r2BadLie})`);
+    if (sandWrongRelease) mismatches.push(`Standard sand: should be R2, not R3 (${sandWrongRelease})`);
+    if (compactWrong) mismatches.push(`Compact sand: should be R1 (${compactWrong})`);
+    if (deepWrong) mismatches.push(`Deep sand: should be R3 (${deepWrong})`);
+
+    return `<div class="summary">
+      <div class="summary-title">Session summary</div>
+      <div class="stat-grid">${stats.join('')}</div>
+      ${relRows ? `<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+        <div class="summary-title" style="margin-bottom:10px">By release</div>
+        ${relRows}
+      </div>` : ''}
+      ${mismatches.length ? `<div style="margin-top:10px;padding:10px 12px;background:var(--amber-light,#fef3e2);border-radius:8px;font-size:12px;color:var(--amber,#b86a00)">
+        <strong>Release / lie mismatches:</strong> ${mismatches.join(' · ')}
+      </div>` : ''}
+    </div>`;
+  }
+
+  if (sess === 'pitch') {
+    const clubs = ['LW2','LW1','SW','GW','PW'];
+    const addrs = ['A1 — Short','A2 — Mid','A3 — Long'];
+    const cleanShots = shots.filter(s => s.strike && s.strike.includes('Clean'));
+    stats.push(mkStat(shots.length, 'Total shots'));
+    stats.push(mkStat(cleanShots.length + '/' + shots.length, 'Clean strikes'));
+
+    // Build matrix: club rows × address columns
+    const hasData = (cl, addr) => shots.some(s => s.club === cl && s.addr === addr && s.carry);
+    const anyData = clubs.some(cl => addrs.some(addr => hasData(cl, addr)));
+
+    if (anyData) {
+      const headerCells = addrs.map(a => `<th style="padding:6px 8px;text-align:center;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.05em">${a.split('—')[0].trim()}<br><span style="font-weight:400">${a.split('—')[1]?.trim()||''}</span></th>`).join('');
+      const dataRows = clubs.map(cl => {
+        const cells = addrs.map(addr => {
+          const s = shots.filter(x => x.club === cl && x.addr === addr && x.carry);
+          if (!s.length) return `<td style="padding:6px 8px;text-align:center;font-size:13px;color:var(--text-3)">—</td>`;
+          const carries = s.map(x => parseFloat(x.carry)).filter(v => !isNaN(v));
+          const a = carries.length ? Math.round(carries.reduce((a,b)=>a+b,0)/carries.length) : null;
+          const mn = carries.length ? Math.min(...carries) : null;
+          const mx = carries.length ? Math.max(...carries) : null;
+          const rng = mn !== null && mn !== mx ? `<br><span style="font-size:10px;color:var(--text-3)">${mn}–${mx}m (${s.length})</span>` : `<br><span style="font-size:10px;color:var(--text-3)">${s.length} shot${s.length>1?'s':''}</span>`;
+          return `<td style="padding:6px 8px;text-align:center;font-size:14px;font-weight:700;color:var(--text)">${a !== null ? a+'m' : '—'}${rng}</td>`;
+        }).join('');
+        const hasAny = addrs.some(addr => hasData(cl, addr));
+        if (!hasAny) return null;
+        return `<tr>
+          <td style="padding:6px 8px 6px 0;font-size:13px;font-weight:600;color:var(--text)">${cl}</td>
+          ${cells}
+        </tr>`;
+      }).filter(Boolean).join('');
+
+      return `<div class="summary">
+        <div class="summary-title">Session summary</div>
+        <div class="stat-grid">${stats.join('')}</div>
+        <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+          <div class="summary-title" style="margin-bottom:10px">Avg carry map (m)</div>
+          <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;min-width:280px">
+            <thead><tr>
+              <th style="padding:6px 8px 6px 0;text-align:left;font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.05em">CLUB</th>
+              ${headerCells}
+            </tr></thead>
+            <tbody>${dataRows}</tbody>
+          </table>
+          </div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:8px">Each cell shows avg carry · (min–max · n shots). Clean strikes only filter: off.</div>
+        </div>
+      </div>`;
+    }
+  }
+
+  if (!stats.length) return '';
+  return `<div class="summary"><div class="summary-title">Session summary</div><div class="stat-grid">${stats.join('')}</div></div>`;
+}
+
+// ── RENDER LOG ────────────────────────────────────────────────────────────
+function renderLog(sess) {
+  const shots = state.shots[sess];
+  const container = document.getElementById(sess === 'hackmotion' ? 'hackmotion-log' : sess + '-log');
+  if (!container) return;
+  if (!shots.length) { container.innerHTML = ''; return; }
+
+  const hdr = `<div class="log-header">
+    <span class="log-title">${shots.length} logged</span>
+    <button class="clear-btn" onclick="clearSess('${sess}')">Clear all</button>
+  </div>`;
+
+  const cards = shots.map((s, i) => `
+    <div class="shot-card">
+      <span class="shot-num">${shots.length - i}</span>
+      <div class="shot-text">${fmt(sess, shots[shots.length - 1 - i])}</div>
+      <button class="del-btn" onclick="delShot('${sess}',${shots.length - 1 - i})" aria-label="Delete">&#215;</button>
+    </div>`).join('');
+
+  container.innerHTML = hdr + `<div class="shot-list">${cards}</div>` + summary(sess, shots);
+}
+
+function delShot(sess, idx) {
+  state.shots[sess].splice(idx, 1);
+  saveToStorage();
+  updateStorageSummary();
+  updatePill(sess);
+  renderLog(sess);
+}
+
+function clearSess(sess) {
+  state.shots[sess] = [];
+  saveToStorage();
+  updateStorageSummary();
+  updatePill(sess);
+  renderLog(sess);
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1400);
+}
+
+init();
+</script>
+</body>
+</html>
