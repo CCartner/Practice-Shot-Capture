@@ -415,6 +415,7 @@
   .sign-btn.neu { background: var(--accent); color: #fff; border-color: var(--accent); }
   .sway-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; align-items: stretch; }
   .sway-row .num-input { min-width: 0; }
+  .bah-row  { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: stretch; }
   .sway-dir-btn {
     padding: 10px 10px;
     border: 1px solid var(--border-strong);
@@ -581,6 +582,25 @@
         <button class="sign-btn" id="long-sg-sign" onclick="toggleSign('long-sg-sign')">&#43;</button>
       </div>
     </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Body at top of backswing (BAH)</div>
+      <div class="field">
+        <span class="field-label">Hip turn (°) — L towards target / R away</span>
+        <div class="bah-row">
+          <input class="num-input" type="text" id="long-hip-bah" placeholder="e.g. 45" inputmode="decimal" autocorrect="off">
+          <button class="sign-btn neg" id="long-hip-bah-l" onclick="setBahDir('long-hip-bah','L',this)">L</button>
+          <button class="sign-btn pos" id="long-hip-bah-r" onclick="setBahDir('long-hip-bah','R',this)">R</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">Chest turn (°) — L towards target / R away</span>
+        <div class="bah-row">
+          <input class="num-input" type="text" id="long-chest-bah" placeholder="e.g. 90" inputmode="decimal" autocorrect="off">
+          <button class="sign-btn neg" id="long-chest-bah-l" onclick="setBahDir('long-chest-bah','L',this)">L</button>
+          <button class="sign-btn pos" id="long-chest-bah-r" onclick="setBahDir('long-chest-bah','R',this)">R</button>
+        </div>
+      </div>
+    </div>
     <div class="field">
       <span class="field-label">Note (optional)</span>
       <input class="text-input" type="text" id="long-note" placeholder="Feel, cue, observation" autocorrect="off">
@@ -589,9 +609,7 @@
     <div id="long-log"></div>
   </div>
   <button class="log-btn" onclick="logShot('long')">Log shot</button>
-</div>
-
-<!-- ══ APPROACH ═════════════════════════════════════════════════════════ -->
+</div> ═════════════════════════════════════════════════════════ -->
 <div id="s-approach" class="screen">
   <div class="topbar">
     <button class="topbar-back" onclick="goHome()">&#8592;</button>
@@ -660,6 +678,25 @@
         <button class="sign-btn" id="app-sg-sign" onclick="toggleSign('app-sg-sign')">&#43;</button>
       </div>
     </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Body at top of backswing (BAH)</div>
+      <div class="field">
+        <span class="field-label">Hip turn (°) — L towards target / R away</span>
+        <div class="bah-row">
+          <input class="num-input" type="text" id="app-hip-bah" placeholder="e.g. 45" inputmode="decimal" autocorrect="off">
+          <button class="sign-btn neg" id="app-hip-bah-l" onclick="setBahDir('app-hip-bah','L',this)">L</button>
+          <button class="sign-btn pos" id="app-hip-bah-r" onclick="setBahDir('app-hip-bah','R',this)">R</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">Chest turn (°) — L towards target / R away</span>
+        <div class="bah-row">
+          <input class="num-input" type="text" id="app-chest-bah" placeholder="e.g. 90" inputmode="decimal" autocorrect="off">
+          <button class="sign-btn neg" id="app-chest-bah-l" onclick="setBahDir('app-chest-bah','L',this)">L</button>
+          <button class="sign-btn pos" id="app-chest-bah-r" onclick="setBahDir('app-chest-bah','R',this)">R</button>
+        </div>
+      </div>
+    </div>
     <div class="field">
       <span class="field-label">Note (optional)</span>
       <input class="text-input" type="text" id="app-note" placeholder="Feel, cue, observation" autocorrect="off">
@@ -668,9 +705,7 @@
     <div id="approach-log"></div>
   </div>
   <button class="log-btn" onclick="logShot('approach')">Log shot</button>
-</div>
-
-<!-- ══ SHORT GAME ════════════════════════════════════════════════════════ -->
+</div> ════════════════════════════════════════════════════════ -->
 <div id="s-short" class="screen">
   <div class="topbar">
     <button class="topbar-back" onclick="goHome()">&#8592;</button>
@@ -1637,6 +1672,36 @@ function fmtSway(v) {
   return (v > 0 ? '+' : '') + v.toFixed(1);
 }
 
+// ── BAH DIRECTION ─────────────────────────────────────────────────────────
+function setBahDir(prefix, dir, el) {
+  const otherDir = dir === 'L' ? 'R' : 'L';
+  const otherId = prefix + '-' + otherDir.toLowerCase();
+  const otherEl = document.getElementById(otherId);
+  const alreadySel = el.classList.contains('sel-neu');
+  el.classList.remove('sel-neu');
+  if (otherEl) otherEl.classList.remove('sel-neu');
+  if (!alreadySel) {
+    el.classList.add('sel-neu');
+    state.chips[prefix + '-dir'] = dir;
+  } else {
+    delete state.chips[prefix + '-dir'];
+  }
+}
+
+function getSignedBah(inputId, prefix) {
+  const raw = getVal(inputId);
+  const dir = state.chips[prefix + '-dir'];
+  if (!raw || !dir) return null;
+  const n = parseFloat(raw.replace(/[^\d.]/g, ''));
+  if (isNaN(n)) return null;
+  return dir === 'L' ? -n : n;
+}
+
+function fmtBah(v) {
+  if (v === null) return null;
+  return (v >= 0 ? '+' : '') + v.toFixed(0) + '\u00b0';
+}
+
 // ── OFFLINE DIR ───────────────────────────────────────────────────────────
 function setOfflineDir(dir, el) {
   const already = state.chips['long-offline-dir'] === dir && el.classList.contains('sel-neu');
@@ -1774,13 +1839,19 @@ function logShot(sess) {
   if (sess === 'long') {
     shot = { ...shot, club:getChip('long-club'), carry:getVal('long-carry'), total:getVal('long-total'),
       offline:getSignedOffline(), fwy:getTog('long-fwy'), miss:getChip('long-miss'),
-      sway:getSignedSway('long-sway'), sg:getSignedSG('long-sg','long-sg-sign'), note:getVal('long-note') };
+      sway:getSignedSway('long-sway'), sg:getSignedSG('long-sg','long-sg-sign'),
+      hipBah:getSignedBah('long-hip-bah','long-hip-bah'),
+      chestBah:getSignedBah('long-chest-bah','long-chest-bah'),
+      note:getVal('long-note') };
     const n = document.getElementById('long-note'); if (n) n.value = '';
 
   } else if (sess === 'approach') {
     shot = { ...shot, club:getChip('approach-club'), target:getVal('app-target'), carry:getVal('app-carry'),
       gir:getTog('app-gir'), prox:getVal('app-prox'), miss:getChip('app-miss'),
-      strike:getChip('app-strike'), sway:getSignedSway('app-sway'), sg:getSignedSG('app-sg','app-sg-sign'), note:getVal('app-note') };
+      strike:getChip('app-strike'), sway:getSignedSway('app-sway'), sg:getSignedSG('app-sg','app-sg-sign'),
+      hipBah:getSignedBah('app-hip-bah','app-hip-bah'),
+      chestBah:getSignedBah('app-chest-bah','app-chest-bah'),
+      note:getVal('app-note') };
     const n = document.getElementById('app-note'); if (n) n.value = '';
 
   } else if (sess === 'short') {
@@ -1873,6 +1944,8 @@ function fmt(sess, s) {
     if (s.miss && s.miss !== 'On target') p.push(s.miss);
     if (s.sway !== null && s.sway !== undefined) p.push(`Sway ${fmtSway(s.sway)}`);
     if (s.sg !== null && s.sg !== undefined) p.push(`SG ${s.sg >= 0 ? '+' : ''}${s.sg.toFixed(2)}`);
+    if (s.hipBah !== null && s.hipBah !== undefined) p.push(`Hip °${fmtBah(s.hipBah)}`);
+    if (s.chestBah !== null && s.chestBah !== undefined) p.push(`Chest °${fmtBah(s.chestBah)}`);
 
   } else if (sess === 'approach') {
     if (s.club) p.push(`<strong>${s.club}</strong>`);
@@ -1884,6 +1957,8 @@ function fmt(sess, s) {
     if (s.strike) p.push(`Strike: ${s.strike}`);
     if (s.sway !== null && s.sway !== undefined) p.push(`Sway ${fmtSway(s.sway)}`);
     if (s.sg !== null && s.sg !== undefined) p.push(`SG ${s.sg >= 0 ? '+' : ''}${s.sg.toFixed(2)}`);
+    if (s.hipBah !== null && s.hipBah !== undefined) p.push(`Hip °${fmtBah(s.hipBah)}`);
+    if (s.chestBah !== null && s.chestBah !== undefined) p.push(`Chest °${fmtBah(s.chestBah)}`);
 
   } else if (sess === 'short') {
     if (s.type) p.push(`<strong>${s.type}</strong>`);
@@ -2079,6 +2154,12 @@ function summary(sess, shots) {
     if (proxA !== null) stats.push(mkStat(proxA + 'm', 'Avg proximity'));
     if (sgA !== null) stats.push(mkStat(fmtSG(sgA), 'Avg SG/shot'));
     if (medSway !== null) stats.push(mkStat(fmtSway(medSway), 'Median sway'));
+    const hipBahValsA = shots.map(s => s.hipBah).filter(v => v !== null && v !== undefined && typeof v === 'number');
+    const chestBahValsA = shots.map(s => s.chestBah).filter(v => v !== null && v !== undefined && typeof v === 'number');
+    const avgHipBahA = hipBahValsA.length ? Math.round(hipBahValsA.reduce((a,b)=>a+b,0)/hipBahValsA.length) : null;
+    const avgChestBahA = chestBahValsA.length ? Math.round(chestBahValsA.reduce((a,b)=>a+b,0)/chestBahValsA.length) : null;
+    if (avgHipBahA !== null) stats.push(mkStat(fmtBah(avgHipBahA), 'Avg hip BAH'));
+    if (avgChestBahA !== null) stats.push(mkStat(fmtBah(avgChestBahA), 'Avg chest BAH'));
     if (toes) stats.push(mkStat(toes, 'Toe strikes'));
     stats.push(mkStat(shots.length, 'Total shots'));
 
@@ -2438,6 +2519,12 @@ function summary(sess, shots) {
     if (sgA !== null) stats.push(mkStat(fmtSG(sgA), 'Avg SG/shot'));
     if (medSway !== null) stats.push(mkStat(fmtSway(medSway), 'Median sway'));
     if (medOff !== null) stats.push(mkStat(fmtOffline(medOff), 'Median offline'));
+    const hipBahValsL = shots.map(s => s.hipBah).filter(v => v !== null && v !== undefined && typeof v === 'number');
+    const chestBahValsL = shots.map(s => s.chestBah).filter(v => v !== null && v !== undefined && typeof v === 'number');
+    const avgHipBahL = hipBahValsL.length ? Math.round(hipBahValsL.reduce((a,b)=>a+b,0)/hipBahValsL.length) : null;
+    const avgChestBahL = chestBahValsL.length ? Math.round(chestBahValsL.reduce((a,b)=>a+b,0)/chestBahValsL.length) : null;
+    if (avgHipBahL !== null) stats.push(mkStat(fmtBah(avgHipBahL), 'Avg hip BAH'));
+    if (avgChestBahL !== null) stats.push(mkStat(fmtBah(avgChestBahL), 'Avg chest BAH'));
 
     const totalMiss = missDist(shots);
 
