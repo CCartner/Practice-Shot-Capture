@@ -415,6 +415,7 @@
   .sign-btn.neu { background: var(--accent); color: #fff; border-color: var(--accent); }
   .sway-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; align-items: stretch; }
   .sway-row .num-input { min-width: 0; }
+  .bah-row  { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: stretch; }
   .sway-dir-btn {
     padding: 10px 10px;
     border: 1px solid var(--border-strong);
@@ -439,6 +440,7 @@
   .icon-wedge   { background: #e8faf4; color: #0f7a56; }
   .icon-grieve  { background: #fdf0e8; color: #8b3a0f; }
   .icon-pitch   { background: #e8f4ff; color: #0f4a8b; }
+  .icon-scoring { background: #f0f4e8; color: #3a6b0a; }
   @media (prefers-color-scheme: dark) {
     .icon-long    { background: #0d2040; color: #7ab8ff; }
     .icon-approach{ background: #0a2e1a; color: #2ecc71; }
@@ -448,6 +450,100 @@
     .icon-wedge   { background: #001e15; color: #00c87a; }
     .icon-grieve  { background: #2a1200; color: #f5a623; }
     .icon-pitch   { background: #001530; color: #4a9eff; }
+    .icon-scoring { background: #1a2500; color: #8bc34a; }
+  }
+
+  /* ── SCORING METHOD SCORECARD ───────────────────────────────────────── */
+  #s-scoring .session-body { padding: 0; }
+  .sc-wrap { padding-bottom: 100px; }
+  .sc-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 14px 8px; }
+  .sc-meta-field { display: flex; flex-direction: column; gap: 4px; }
+  .sc-meta-field label { font-size: 10px; font-weight: 700; color: var(--text-3); letter-spacing: .06em; text-transform: uppercase; }
+  .sc-meta-field input, .sc-meta-field select { padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; width: 100%; box-sizing: border-box; }
+  .sc-meta-field.full { grid-column: 1 / -1; }
+  .sc-hole-nav { display: flex; align-items: center; justify-content: space-between; padding: 4px 14px 2px; }
+  .sc-hole-nav-title { font-size: 16px; font-weight: 800; color: var(--text); }
+  .sc-hole-nav-par { font-size: 12px; color: var(--text-3); }
+  .sc-progress { display: flex; gap: 4px; padding: 6px 14px 4px; flex-wrap: wrap; }
+  .sc-progress-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border-strong); background: var(--surface-2); cursor: pointer; transition: all .12s; flex-shrink: 0; }
+  .sc-progress-dot.done { background: var(--green); border-color: var(--green); }
+  .sc-progress-dot.current { border-color: var(--accent); background: var(--accent-light); box-shadow: 0 0 0 2px var(--accent); }
+  .sc-hole-entry { padding: 6px 14px; }
+  .sc-par-pick { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .sc-par-pick .spl { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; margin-right: 2px; }
+  .sc-par-btn { padding: 7px 16px; border-radius: 20px; border: 2px solid var(--border-strong); font-size: 14px; font-weight: 700; cursor: pointer; background: var(--surface); color: var(--text-2); transition: all .12s; }
+  .sc-par-btn.sel { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .sc-row-block { margin-bottom: 8px; border: 1px solid var(--border-strong); border-radius: 10px; overflow: hidden; }
+  .sc-row-hdr { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: var(--surface-1); border-bottom: 1px solid var(--border); }
+  .sc-row-label { font-size: 13px; font-weight: 800; color: var(--text); min-width: 20px; }
+  .sc-row-desc { font-size: 11px; color: var(--text-3); flex: 1; }
+  .sc-row-auto { font-size: 11px; color: var(--text-3); font-style: italic; }
+  .sc-row-body { padding: 10px 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .sc-tick-btn { padding: 10px 20px; border-radius: 8px; border: 2px solid var(--border-strong); font-size: 20px; font-weight: 700; cursor: pointer; background: var(--surface); color: var(--text-2); transition: all .12s; flex: 1; min-width: 80px; text-align: center; }
+  .sc-tick-btn:active { transform: scale(0.95); }
+  .sc-tick-btn.tick { background: #e6f5ec; border-color: #1a7a40; color: #1a7a40; }
+  .sc-tick-btn.cross { background: #fbeae8; border-color: #c0392b; color: #c0392b; }
+  .sc-row-c-display { padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+  .sc-score-display { font-size: 24px; font-weight: 900; color: var(--text); }
+  .sc-score-sub { font-size: 12px; color: var(--text-3); }
+  .sc-num-row { display: flex; gap: 8px; align-items: flex-end; }
+  .sc-num-block { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .sc-num-block label { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; }
+  .sc-num-input { width: 100%; padding: 10px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 16px; font-weight: 600; text-align: center; box-sizing: border-box; }
+  .sc-hole-actions { display: flex; gap: 8px; padding: 8px 14px; }
+  .sc-btn { flex: 1; padding: 13px 10px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all .12s; }
+  .sc-btn:active { transform: scale(0.97); }
+  .sc-btn-prev { background: var(--surface-2); color: var(--text-2); }
+  .sc-btn-next { background: var(--accent); color: #fff; }
+  .sc-btn-summary { background: var(--green); color: #fff; }
+  .sc-btn-print { background: var(--navy); color: #fff; }
+  /* Summary view */
+  .sc-summary-wrap { padding: 12px 14px 100px; }
+  .sc-summary-title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 12px; }
+  .sc-totals-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+  .sc-totals-card { background: var(--surface-1); border-radius: 10px; padding: 12px; }
+  .sc-totals-card .tc-label { font-size: 10px; color: var(--text-3); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  .sc-totals-card .tc-val { font-size: 28px; font-weight: 900; color: var(--text); line-height: 1.1; }
+  .sc-totals-card .tc-sub { font-size: 11px; color: var(--text-3); }
+  .sc-totals-card.highlight { background: var(--accent-light); }
+  .sc-totals-card.highlight .tc-val { color: var(--accent); }
+  .sc-hole-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 14px; }
+  .sc-print-table { width: 100%; border-collapse: collapse; font-size: 10px; min-width: 600px; }
+  .sc-print-table th, .sc-print-table td { border: 1px solid var(--border-strong); padding: 4px 5px; text-align: center; vertical-align: middle; }
+  .sc-print-table .pt-label { text-align: left; font-weight: 700; font-size: 9px; white-space: nowrap; background: var(--surface-1); min-width: 70px; }
+  .sc-print-table .pt-hdr { background: var(--navy); color: #fff; font-weight: 700; font-size: 10px; }
+  .sc-print-table .pt-total { background: var(--surface-2); font-weight: 700; }
+  .sc-print-table .pt-tick { background: #e6f5ec; color: #1a7a40; font-weight: 700; font-size: 14px; }
+  .sc-print-table .pt-cross { background: #fbeae8; color: #c0392b; font-weight: 700; font-size: 14px; }
+  .sc-print-table .pt-rowC { background: var(--accent-light); font-weight: 700; }
+  .sc-print-table .pt-num { font-weight: 600; }
+  .sc-feedback-section { margin-bottom: 14px; }
+  .sc-feedback-title { font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+  .sc-feedback-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sc-feedback-card { border: 1px solid var(--border-strong); border-radius: 8px; overflow: hidden; }
+  .sc-feedback-card .fc-title { font-size: 10px; font-weight: 700; color: #fff; padding: 5px 8px; text-transform: uppercase; letter-spacing: .05em; }
+  .sc-feedback-card.success .fc-title { background: var(--green); }
+  .sc-feedback-card.failure .fc-title { background: var(--red); }
+  .sc-feedback-card .fc-row { display: flex; justify-content: space-between; padding: 5px 8px; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .sc-feedback-card .fc-row:last-child { border-bottom: none; }
+  .sc-feedback-card .fc-row-label { color: var(--text-2); }
+  .sc-feedback-card .fc-row-val { font-weight: 700; color: var(--text); }
+  .sc-keys-section { margin-bottom: 12px; }
+  .sc-keys-title { font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+  .sc-key-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .sc-key-item:last-child { border-bottom: none; }
+  .sc-key-num { width: 22px; height: 22px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sc-key-broken { width: 20px; height: 20px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--surface); flex-shrink: 0; }
+  .sc-key-text { font-size: 12px; color: var(--text-2); flex: 1; line-height: 1.3; }
+  .sc-key-soln { font-size: 10px; color: var(--accent); font-weight: 600; display: block; margin-top: 2px; }
+  .sc-notes-ta { width: 100%; min-height: 70px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; padding: 10px 12px; box-sizing: border-box; resize: vertical; margin-bottom: 14px; }
+  .sc-back-btn { width: 100%; padding: 13px; border-radius: 10px; border: none; background: var(--surface-2); color: var(--text-2); font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
+  @media print {
+    .app > div:not(#s-scoring) { display: none !important; }
+    #s-scoring { display: block !important; }
+    .topbar, .sc-hole-entry, .sc-hole-nav, .sc-hole-actions, .sc-progress, .sc-back-btn, .sc-hole-scroll .sc-hole-entry { display: none !important; }
+    .sc-summary-wrap { padding: 0; }
+    @page { size: landscape; margin: 8mm; }
   }
 </style>
 </head>
@@ -504,6 +600,11 @@
         <div class="sess-icon icon-pitch">&#8645;</div>
         <div class="sess-name">Pitch mapping</div>
         <div class="sess-desc">Carry by club &amp; address</div>
+      </button>
+      <button class="sess-card" onclick="startScoring()" id="card-scoring">
+        <div class="sess-icon icon-scoring">&#9733;</div>
+        <div class="sess-name">Scoring Method</div>
+        <div class="sess-desc">TSM scorecard</div>
       </button>
     </div>
     <button class="start-btn" id="start-btn" disabled onclick="startSess()">Start session</button>
@@ -581,6 +682,25 @@
         <button class="sign-btn" id="long-sg-sign" onclick="toggleSign('long-sg-sign')">&#43;</button>
       </div>
     </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Body at top of backswing (BAH)</div>
+      <div class="field">
+        <span class="field-label">Hip turn (°) — L towards target / R away</span>
+        <div class="bah-row">
+          <input class="num-input" type="text" id="long-hip-bah" placeholder="e.g. 45" inputmode="decimal" autocorrect="off">
+          <button class="sign-btn neg" id="long-hip-bah-l" onclick="setBahDir('long-hip-bah','L',this)">L</button>
+          <button class="sign-btn pos" id="long-hip-bah-r" onclick="setBahDir('long-hip-bah','R',this)">R</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">Chest turn (°) — L towards target / R away</span>
+        <div class="bah-row">
+          <input class="num-input" type="text" id="long-chest-bah" placeholder="e.g. 90" inputmode="decimal" autocorrect="off">
+          <button class="sign-btn neg" id="long-chest-bah-l" onclick="setBahDir('long-chest-bah','L',this)">L</button>
+          <button class="sign-btn pos" id="long-chest-bah-r" onclick="setBahDir('long-chest-bah','R',this)">R</button>
+        </div>
+      </div>
+    </div>
     <div class="field">
       <span class="field-label">Note (optional)</span>
       <input class="text-input" type="text" id="long-note" placeholder="Feel, cue, observation" autocorrect="off">
@@ -589,9 +709,7 @@
     <div id="long-log"></div>
   </div>
   <button class="log-btn" onclick="logShot('long')">Log shot</button>
-</div>
-
-<!-- ══ APPROACH ═════════════════════════════════════════════════════════ -->
+</div> ═════════════════════════════════════════════════════════ -->
 <div id="s-approach" class="screen">
   <div class="topbar">
     <button class="topbar-back" onclick="goHome()">&#8592;</button>
@@ -660,6 +778,25 @@
         <button class="sign-btn" id="app-sg-sign" onclick="toggleSign('app-sg-sign')">&#43;</button>
       </div>
     </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Body at top of backswing (BAH)</div>
+      <div class="field">
+        <span class="field-label">Hip turn (°) — L towards target / R away</span>
+        <div class="bah-row">
+          <input class="num-input" type="text" id="app-hip-bah" placeholder="e.g. 45" inputmode="decimal" autocorrect="off">
+          <button class="sign-btn neg" id="app-hip-bah-l" onclick="setBahDir('app-hip-bah','L',this)">L</button>
+          <button class="sign-btn pos" id="app-hip-bah-r" onclick="setBahDir('app-hip-bah','R',this)">R</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">Chest turn (°) — L towards target / R away</span>
+        <div class="bah-row">
+          <input class="num-input" type="text" id="app-chest-bah" placeholder="e.g. 90" inputmode="decimal" autocorrect="off">
+          <button class="sign-btn neg" id="app-chest-bah-l" onclick="setBahDir('app-chest-bah','L',this)">L</button>
+          <button class="sign-btn pos" id="app-chest-bah-r" onclick="setBahDir('app-chest-bah','R',this)">R</button>
+        </div>
+      </div>
+    </div>
     <div class="field">
       <span class="field-label">Note (optional)</span>
       <input class="text-input" type="text" id="app-note" placeholder="Feel, cue, observation" autocorrect="off">
@@ -668,9 +805,7 @@
     <div id="approach-log"></div>
   </div>
   <button class="log-btn" onclick="logShot('approach')">Log shot</button>
-</div>
-
-<!-- ══ SHORT GAME ════════════════════════════════════════════════════════ -->
+</div> ════════════════════════════════════════════════════════ -->
 <div id="s-short" class="screen">
   <div class="topbar">
     <button class="topbar-back" onclick="goHome()">&#8592;</button>
@@ -1360,6 +1495,78 @@
   <button class="log-btn" onclick="logShot('grieve')">Log shot</button>
 </div>
 
+<!-- ══ SCORING METHOD SCORECARD ════════════════════════════════════════ -->
+<div id="s-scoring" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="scGoHome()">&#8592;</button>
+    <div class="topbar-title"><h1>Scoring Method</h1><p>TSM scorecard</p></div>
+    <div class="topbar-pill" id="sc-pill">Hole 1</div>
+  </div>
+  <div class="session-body" style="padding:0">
+    <div id="sc-hole-view" class="sc-wrap">
+      <!-- Meta fields -->
+      <div class="sc-meta">
+        <div class="sc-meta-field full">
+          <label>Name</label>
+          <input type="text" id="sc-name" placeholder="Your name">
+        </div>
+        <div class="sc-meta-field">
+          <label>Course</label>
+          <input type="text" id="sc-course" placeholder="Bonnie Doon GC">
+        </div>
+        <div class="sc-meta-field">
+          <label>Date</label>
+          <input type="date" id="sc-date">
+        </div>
+        <div class="sc-meta-field">
+          <label>Tee</label>
+          <input type="text" id="sc-tee" placeholder="White">
+        </div>
+        <div class="sc-meta-field">
+          <label>Score vs par</label>
+          <input type="number" id="sc-score-vs-par" placeholder="+9" inputmode="decimal">
+        </div>
+      </div>
+      <!-- Progress dots -->
+      <div class="sc-progress" id="sc-progress"></div>
+      <!-- Hole entry -->
+      <div class="sc-hole-entry" id="sc-hole-entry"></div>
+      <!-- Nav buttons -->
+      <div class="sc-hole-actions">
+        <button class="sc-btn sc-btn-prev" id="sc-prev-btn" onclick="scPrevHole()">&#8592; Prev</button>
+        <button class="sc-btn sc-btn-next" id="sc-next-btn" onclick="scNextHole()">Next &#8594;</button>
+      </div>
+      <div style="padding:0 14px 4px;display:flex;gap:8px">
+        <button class="sc-btn" style="background:var(--surface-2);color:var(--text-2);font-size:12px;padding:8px" onclick="scShowSummary()">&#9733; Summary</button>
+        <button class="sc-btn" style="background:var(--red);color:#fff;font-size:12px;padding:8px" onclick="scNewRound()">&#8635; New round</button>
+      </div>
+    </div>
+    <!-- Summary view -->
+    <div id="sc-summary-view" class="sc-summary-wrap" style="display:none">
+      <div class="sc-summary-title">Scorecard Summary</div>
+      <div id="sc-totals-cards" class="sc-totals-grid"></div>
+      <div class="sc-hole-scroll">
+        <table class="sc-print-table" id="sc-print-table"></table>
+      </div>
+      <div class="sc-feedback-section">
+        <div class="sc-feedback-title">Successes &amp; Feedback</div>
+        <div class="sc-feedback-cards" id="sc-feedback-cards"></div>
+      </div>
+      <div class="sc-keys-section">
+        <div class="sc-keys-title">10 Keys to Scoring — Broken this round</div>
+        <div id="sc-keys-list"></div>
+      </div>
+      <div class="sc-notes-section">
+        <div class="sc-feedback-title" style="margin-bottom:6px">Notes from round</div>
+        <textarea class="sc-notes-ta" id="sc-notes-ta" placeholder="Notes…"></textarea>
+      </div>
+      <button class="sc-btn sc-btn-print" onclick="scPrint()" style="width:100%;margin-bottom:8px">&#128438; Print / Save PDF</button>
+      <button class="sc-btn sc-btn-prev" onclick="scBackToEntry()" style="width:100%;margin-bottom:8px">&#8592; Back to holes</button>
+      <button class="sc-back-btn" onclick="scGoHome()">&#8962; Home</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const CLUBS = {
   long: ['Driver','3W','5W','9W','4H','5H','5i'],
@@ -1637,6 +1844,36 @@ function fmtSway(v) {
   return (v > 0 ? '+' : '') + v.toFixed(1);
 }
 
+// ── BAH DIRECTION ─────────────────────────────────────────────────────────
+function setBahDir(prefix, dir, el) {
+  const otherDir = dir === 'L' ? 'R' : 'L';
+  const otherId = prefix + '-' + otherDir.toLowerCase();
+  const otherEl = document.getElementById(otherId);
+  const alreadySel = el.classList.contains('sel-neu');
+  el.classList.remove('sel-neu');
+  if (otherEl) otherEl.classList.remove('sel-neu');
+  if (!alreadySel) {
+    el.classList.add('sel-neu');
+    state.chips[prefix + '-dir'] = dir;
+  } else {
+    delete state.chips[prefix + '-dir'];
+  }
+}
+
+function getSignedBah(inputId, prefix) {
+  const raw = getVal(inputId);
+  const dir = state.chips[prefix + '-dir'];
+  if (!raw || !dir) return null;
+  const n = parseFloat(raw.replace(/[^\d.]/g, ''));
+  if (isNaN(n)) return null;
+  return dir === 'L' ? -n : n;
+}
+
+function fmtBah(v) {
+  if (v === null) return null;
+  return (v >= 0 ? '+' : '') + v.toFixed(0) + '\u00b0';
+}
+
 // ── OFFLINE DIR ───────────────────────────────────────────────────────────
 function setOfflineDir(dir, el) {
   const already = state.chips['long-offline-dir'] === dir && el.classList.contains('sel-neu');
@@ -1774,13 +2011,19 @@ function logShot(sess) {
   if (sess === 'long') {
     shot = { ...shot, club:getChip('long-club'), carry:getVal('long-carry'), total:getVal('long-total'),
       offline:getSignedOffline(), fwy:getTog('long-fwy'), miss:getChip('long-miss'),
-      sway:getSignedSway('long-sway'), sg:getSignedSG('long-sg','long-sg-sign'), note:getVal('long-note') };
+      sway:getSignedSway('long-sway'), sg:getSignedSG('long-sg','long-sg-sign'),
+      hipBah:getSignedBah('long-hip-bah','long-hip-bah'),
+      chestBah:getSignedBah('long-chest-bah','long-chest-bah'),
+      note:getVal('long-note') };
     const n = document.getElementById('long-note'); if (n) n.value = '';
 
   } else if (sess === 'approach') {
     shot = { ...shot, club:getChip('approach-club'), target:getVal('app-target'), carry:getVal('app-carry'),
       gir:getTog('app-gir'), prox:getVal('app-prox'), miss:getChip('app-miss'),
-      strike:getChip('app-strike'), sway:getSignedSway('app-sway'), sg:getSignedSG('app-sg','app-sg-sign'), note:getVal('app-note') };
+      strike:getChip('app-strike'), sway:getSignedSway('app-sway'), sg:getSignedSG('app-sg','app-sg-sign'),
+      hipBah:getSignedBah('app-hip-bah','app-hip-bah'),
+      chestBah:getSignedBah('app-chest-bah','app-chest-bah'),
+      note:getVal('app-note') };
     const n = document.getElementById('app-note'); if (n) n.value = '';
 
   } else if (sess === 'short') {
@@ -1873,6 +2116,8 @@ function fmt(sess, s) {
     if (s.miss && s.miss !== 'On target') p.push(s.miss);
     if (s.sway !== null && s.sway !== undefined) p.push(`Sway ${fmtSway(s.sway)}`);
     if (s.sg !== null && s.sg !== undefined) p.push(`SG ${s.sg >= 0 ? '+' : ''}${s.sg.toFixed(2)}`);
+    if (s.hipBah !== null && s.hipBah !== undefined) p.push(`Hip °${fmtBah(s.hipBah)}`);
+    if (s.chestBah !== null && s.chestBah !== undefined) p.push(`Chest °${fmtBah(s.chestBah)}`);
 
   } else if (sess === 'approach') {
     if (s.club) p.push(`<strong>${s.club}</strong>`);
@@ -1884,6 +2129,8 @@ function fmt(sess, s) {
     if (s.strike) p.push(`Strike: ${s.strike}`);
     if (s.sway !== null && s.sway !== undefined) p.push(`Sway ${fmtSway(s.sway)}`);
     if (s.sg !== null && s.sg !== undefined) p.push(`SG ${s.sg >= 0 ? '+' : ''}${s.sg.toFixed(2)}`);
+    if (s.hipBah !== null && s.hipBah !== undefined) p.push(`Hip °${fmtBah(s.hipBah)}`);
+    if (s.chestBah !== null && s.chestBah !== undefined) p.push(`Chest °${fmtBah(s.chestBah)}`);
 
   } else if (sess === 'short') {
     if (s.type) p.push(`<strong>${s.type}</strong>`);
@@ -2079,6 +2326,12 @@ function summary(sess, shots) {
     if (proxA !== null) stats.push(mkStat(proxA + 'm', 'Avg proximity'));
     if (sgA !== null) stats.push(mkStat(fmtSG(sgA), 'Avg SG/shot'));
     if (medSway !== null) stats.push(mkStat(fmtSway(medSway), 'Median sway'));
+    const hipBahValsA = shots.map(s => s.hipBah).filter(v => v !== null && v !== undefined && typeof v === 'number');
+    const chestBahValsA = shots.map(s => s.chestBah).filter(v => v !== null && v !== undefined && typeof v === 'number');
+    const avgHipBahA = hipBahValsA.length ? Math.round(hipBahValsA.reduce((a,b)=>a+b,0)/hipBahValsA.length) : null;
+    const avgChestBahA = chestBahValsA.length ? Math.round(chestBahValsA.reduce((a,b)=>a+b,0)/chestBahValsA.length) : null;
+    if (avgHipBahA !== null) stats.push(mkStat(fmtBah(avgHipBahA), 'Avg hip BAH'));
+    if (avgChestBahA !== null) stats.push(mkStat(fmtBah(avgChestBahA), 'Avg chest BAH'));
     if (toes) stats.push(mkStat(toes, 'Toe strikes'));
     stats.push(mkStat(shots.length, 'Total shots'));
 
@@ -2438,6 +2691,12 @@ function summary(sess, shots) {
     if (sgA !== null) stats.push(mkStat(fmtSG(sgA), 'Avg SG/shot'));
     if (medSway !== null) stats.push(mkStat(fmtSway(medSway), 'Median sway'));
     if (medOff !== null) stats.push(mkStat(fmtOffline(medOff), 'Median offline'));
+    const hipBahValsL = shots.map(s => s.hipBah).filter(v => v !== null && v !== undefined && typeof v === 'number');
+    const chestBahValsL = shots.map(s => s.chestBah).filter(v => v !== null && v !== undefined && typeof v === 'number');
+    const avgHipBahL = hipBahValsL.length ? Math.round(hipBahValsL.reduce((a,b)=>a+b,0)/hipBahValsL.length) : null;
+    const avgChestBahL = chestBahValsL.length ? Math.round(chestBahValsL.reduce((a,b)=>a+b,0)/chestBahValsL.length) : null;
+    if (avgHipBahL !== null) stats.push(mkStat(fmtBah(avgHipBahL), 'Avg hip BAH'));
+    if (avgChestBahL !== null) stats.push(mkStat(fmtBah(avgChestBahL), 'Avg chest BAH'));
 
     const totalMiss = missDist(shots);
 
@@ -2660,6 +2919,552 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 1400);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SCORING METHOD SCORECARD
+// ══════════════════════════════════════════════════════════════════════════
+const SC_KEY = 'tsmScorecard_v1';
+const SC_10KEYS = [
+  { k: 'Missed short putts',       s: 'Test yourself from your one-putt circle' },
+  { k: 'Penalty strokes',          s: 'Play away, avoid trouble at all cost' },
+  { k: 'Not getting out of trouble',s: 'Play the safe shot to get back in play' },
+  { k: 'Three putts',              s: 'Long putts need good pace, not great reads' },
+  { k: 'Under clubbing',           s: 'Learn your carry yardage' },
+  { k: 'Playing risky shots',      s: 'Play within your comfort level' },
+  { k: 'Short siding',             s: 'Play to the long side of the flag' },
+  { k: 'Holding on to bad shots',  s: 'Put the last shot behind & focus on next shot' },
+  { k: 'Misreading the lie',       s: 'Learn what shot is possible from your lie' },
+  { k: 'Starting poorly',          s: 'Start off in first gear' }
+];
+
+// Scoring zone threshold: shots to reach inside 90m
+// A ✓ means you got INTO the scoring zone in regulation (≤ threshold shots)
+// Row A threshold: par3=1, par4=2, par5=3
+// Row B ✓ means you got DOWN (holed out) in ≤3 shots from scoring zone
+function scAThreshold(par) {
+  if (par === 3) return 1;
+  if (par === 4) return 2;
+  return 3; // par 5
+}
+
+let scData = {
+  meta: { name:'', course:'Bonnie Doon GC', date:'', tee:'', scoreVsPar:'' },
+  holes: Array.from({length:18}, () => ({
+    par: null,         // 3, 4, or 5
+    shotsToZone: '',   // Row A: shots taken to get inside 90m scoring zone
+    shotsToHole: '',   // Row B: shots taken to hole out from scoring zone
+    rowA: null,        // derived: true=✓ false=✗ null=not entered
+    rowB: null,        // derived: true=✓ false=✗ null=not entered
+    missLen: '',       // row 1: length of missed putt inside 4ft (feet) — blank = none missed
+    prox: '',          // row 1: proximity to hole (m)
+    totalPutts: '',    // row 2: total putts
+  })),
+  currentHole: 0,      // 0-indexed
+  keysBroken: Array(10).fill(false),
+  notes: ''
+};
+
+// Derive rowA/rowB from shot counts
+function scDeriveAB(h) {
+  const par = h.par;
+  const stz = h.shotsToZone !== '' ? parseInt(h.shotsToZone) : null;
+  const sth = h.shotsToHole !== '' ? parseInt(h.shotsToHole) : null;
+  h.rowA = (par && stz !== null && !isNaN(stz)) ? (stz <= scAThreshold(par)) : null;
+  h.rowB = (sth !== null && !isNaN(sth)) ? (sth <= 3) : null;
+}
+
+function scLoadStorage() {
+  try {
+    const raw = localStorage.getItem(SC_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved && saved.holes && saved.holes.length === 18) {
+      scData = saved;
+    }
+  } catch(e) {}
+}
+
+function scSaveStorage() {
+  try {
+    // Also capture live meta fields before saving
+    scData.meta.name = document.getElementById('sc-name')?.value || scData.meta.name;
+    scData.meta.course = document.getElementById('sc-course')?.value || scData.meta.course;
+    scData.meta.date = document.getElementById('sc-date')?.value || scData.meta.date;
+    scData.meta.tee = document.getElementById('sc-tee')?.value || scData.meta.tee;
+    scData.meta.scoreVsPar = document.getElementById('sc-score-vs-par')?.value || scData.meta.scoreVsPar;
+    localStorage.setItem(SC_KEY, JSON.stringify(scData));
+  } catch(e) {}
+}
+
+function scGoHome() {
+  scSaveStorage();
+  show('s-home');
+  updateStorageSummary();
+  window.scrollTo(0,0);
+}
+
+function startScoring() {
+  scLoadStorage();
+  show('s-scoring');
+  // Populate meta fields
+  document.getElementById('sc-name').value = scData.meta.name || '';
+  document.getElementById('sc-course').value = scData.meta.course || '';
+  document.getElementById('sc-date').value = scData.meta.date || (new Date().toISOString().split('T')[0]);
+  document.getElementById('sc-tee').value = scData.meta.tee || '';
+  document.getElementById('sc-score-vs-par').value = scData.meta.scoreVsPar || '';
+  // Show hole view
+  document.getElementById('sc-hole-view').style.display = '';
+  document.getElementById('sc-summary-view').style.display = 'none';
+  scRenderProgress();
+  scRenderHole();
+  window.scrollTo(0,0);
+}
+
+function scRenderProgress() {
+  const wrap = document.getElementById('sc-progress');
+  wrap.innerHTML = Array.from({length:18}, (_,i) => {
+    const h = scData.holes[i];
+    const done = h.par !== null && h.rowA !== null && h.rowB !== null && h.totalPutts !== '';
+    const cur = i === scData.currentHole;
+    return `<div class="sc-progress-dot${done?' done':''}${cur?' current':''}" onclick="scJumpHole(${i})" title="Hole ${i+1}"></div>`;
+  }).join('');
+  document.getElementById('sc-pill').textContent = `Hole ${scData.currentHole + 1}`;
+}
+
+function scJumpHole(i) {
+  scSaveHoleLive();
+  scSaveStorage();
+  scData.currentHole = i;
+  scRenderProgress();
+  scRenderHole();
+}
+
+function scRenderHole() {
+  const i = scData.currentHole;
+  const h = scData.holes[i];
+  const par = h.par;
+  const aThresh = par ? scAThreshold(par) : null;
+  const parLabel = par ? `Par ${par} — scoring zone: ≤${aThresh} shot${aThresh>1?'s':''} to 90m` : 'Set par first';
+
+  // Row C auto-compute
+  const rowC = (h.rowA === true ? 1 : 0) + (h.rowB === true ? 1 : 0);
+  const rowCDisplay = (h.rowA !== null && h.rowB !== null) ? rowC : '—';
+
+  const html = `
+    <div class="sc-hole-nav">
+      <div class="sc-hole-nav-title">Hole ${i+1}</div>
+      <div class="sc-hole-nav-par">${parLabel}</div>
+    </div>
+    <!-- Par picker -->
+    <div class="sc-par-pick" style="padding:0 14px 6px">
+      <span class="spl">Par</span>
+      ${[3,4,5].map(p => `<button class="sc-par-btn${par===p?' sel':''}" onclick="scSetPar(${p})">${p}</button>`).join('')}
+    </div>
+    <!-- Row A -->
+    <div class="sc-row-block" style="margin:0 14px 8px">
+      <div class="sc-row-hdr">
+        <div class="sc-row-label">A</div>
+        <div class="sc-row-desc">Entering scoring zone (within 90m)
+          ${par ? `<br><small>✓ ≤${aThresh} shot${aThresh>1?'s':''} to reach 90m &nbsp;·&nbsp; ✗ if more</small>` : '<br><small>Set par first</small>'}
+        </div>
+        ${h.rowA===true ? `<span class="sc-ab-badge" style="font-size:22px;color:#1a7a40;font-weight:800;margin-left:auto">✓</span>` : h.rowA===false ? `<span class="sc-ab-badge" style="font-size:22px;color:#c0392b;font-weight:800;margin-left:auto">✗</span>` : `<span class="sc-ab-badge" style="font-size:18px;color:var(--text-3);margin-left:auto">—</span>`}
+      </div>
+      <div class="sc-row-body">
+        <div class="sc-num-block" style="flex:1">
+          <label style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">Shots to get inside 90m</label>
+          <input class="sc-num-input" type="number" id="sc-shots-to-zone" value="${h.shotsToZone}" placeholder="${par ? aThresh : '—'}" inputmode="numeric" min="1" max="10"
+            oninput="scLiveDerive()" style="max-width:120px">
+        </div>
+        ${h.rowA!==null ? `<div style="display:flex;align-items:center;padding:0 4px;font-size:13px;color:var(--text-3)">${par ? `≤${aThresh} = ✓` : ''}</div>` : ''}
+      </div>
+    </div>
+    <!-- Row B -->
+    <div class="sc-row-block" style="margin:0 14px 8px">
+      <div class="sc-row-hdr">
+        <div class="sc-row-label">B</div>
+        <div class="sc-row-desc">Down in scoring zone
+          <br><small>✓ holed out in ≤3 shots from zone &nbsp;·&nbsp; ✗ if more</small>
+        </div>
+        ${h.rowB===true ? `<span class="sc-ab-badge" style="font-size:22px;color:#1a7a40;font-weight:800;margin-left:auto">✓</span>` : h.rowB===false ? `<span class="sc-ab-badge" style="font-size:22px;color:#c0392b;font-weight:800;margin-left:auto">✗</span>` : `<span class="sc-ab-badge" style="font-size:18px;color:var(--text-3);margin-left:auto">—</span>`}
+      </div>
+      <div class="sc-row-body">
+        <div class="sc-num-block" style="flex:1">
+          <label style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">Shots to hole out from zone</label>
+          <input class="sc-num-input" type="number" id="sc-shots-to-hole" value="${h.shotsToHole}" placeholder="3" inputmode="numeric" min="1" max="10"
+            oninput="scLiveDerive()" style="max-width:120px">
+        </div>
+        ${h.rowB!==null ? `<div style="display:flex;align-items:center;padding:0 4px;font-size:13px;color:var(--text-3)">≤3 = ✓</div>` : ''}
+      </div>
+    </div>
+    <!-- Row C (auto) -->
+    <div class="sc-row-block" style="margin:0 14px 8px;background:var(--accent-light)">
+      <div class="sc-row-hdr" style="background:var(--accent-light)">
+        <div class="sc-row-label">C</div>
+        <div class="sc-row-desc">Score = A + B (auto-calculated)</div>
+      </div>
+      <div class="sc-row-c-display">
+        <div class="sc-score-display" id="sc-row-c-val">${rowCDisplay}</div>
+        <div class="sc-score-sub" id="sc-row-c-sub">${(h.rowA!==null&&h.rowB!==null) ? (rowC===2?'Full score':'Partial score') : 'Set A and B first'}</div>
+      </div>
+    </div>
+    <!-- Row 1 -->
+    <div class="sc-row-block" style="margin:0 14px 8px">
+      <div class="sc-row-hdr">
+        <div class="sc-row-label">1</div>
+        <div class="sc-row-desc">Putts missed &lt;4ft · proximity to hole
+          <br><small>Enter length (ft) of any putt missed inside 4ft — ✗ auto-recorded</small>
+        </div>
+        ${h.missLen !== '' ? `<span class="sc-ab-badge" style="font-size:22px;color:#c0392b;font-weight:800;margin-left:auto">✗</span>` : `<span class="sc-ab-badge" style="font-size:18px;color:var(--text-3);margin-left:auto">—</span>`}
+      </div>
+      <div class="sc-row-body">
+        <div class="sc-num-row" style="width:100%">
+          <div class="sc-num-block">
+            <label>Missed putt length (ft)</label>
+            <input class="sc-num-input" type="number" id="sc-miss-len" value="${h.missLen}" placeholder="Leave blank if none" inputmode="decimal" min="0.5" max="4" step="0.5"
+              oninput="scLiveMiss()">
+          </div>
+          <div class="sc-num-block">
+            <label>Proximity (m)</label>
+            <input class="sc-num-input" type="number" id="sc-prox" value="${h.prox}" placeholder="8.5" inputmode="decimal" onchange="scSaveHoleLive()">
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Row 2 -->
+    <div class="sc-row-block" style="margin:0 14px 8px">
+      <div class="sc-row-hdr">
+        <div class="sc-row-label">2</div>
+        <div class="sc-row-desc">Total putts this hole</div>
+      </div>
+      <div class="sc-row-body">
+        <input class="sc-num-input" type="number" id="sc-total-putts" value="${h.totalPutts}" placeholder="2" inputmode="numeric" min="0" max="6" style="max-width:100px" onchange="scSaveHoleLive()">
+      </div>
+    </div>
+  `;
+  document.getElementById('sc-hole-entry').innerHTML = html;
+
+  // Nav button labels
+  document.getElementById('sc-prev-btn').disabled = i === 0;
+  document.getElementById('sc-prev-btn').style.opacity = i === 0 ? '0.4' : '1';
+  const isLast = i === 17;
+  document.getElementById('sc-next-btn').textContent = isLast ? '&#9733; Summary' : 'Next &#8594;';
+  document.getElementById('sc-next-btn').className = isLast ? 'sc-btn sc-btn-summary' : 'sc-btn sc-btn-next';
+}
+
+function scSetPar(par) {
+  scSaveHoleLive();
+  scData.holes[scData.currentHole].par = par;
+  scSaveStorage();
+  scRenderHole();
+}
+
+function scToggle(row, val) {
+  const h = scData.holes[scData.currentHole];
+  const newVal = val === 'tick' ? true : false;
+  if (row === 'A') {
+    h.rowA = (h.rowA === newVal) ? null : newVal; // tap again to deselect
+  } else {
+    h.rowB = (h.rowB === newVal) ? null : newVal;
+  }
+  scSaveStorage();
+  scRenderHole();
+}
+
+function scSaveHoleLive() {
+  const h = scData.holes[scData.currentHole];
+  const stz = document.getElementById('sc-shots-to-zone');
+  const sth = document.getElementById('sc-shots-to-hole');
+  const ml  = document.getElementById('sc-miss-len');
+  const prx = document.getElementById('sc-prox');
+  const tp  = document.getElementById('sc-total-putts');
+  if (stz) h.shotsToZone = stz.value;
+  if (sth) h.shotsToHole = sth.value;
+  if (ml)  h.missLen = ml.value;
+  if (prx) h.prox = prx.value;
+  if (tp)  h.totalPutts = tp.value;
+  scDeriveAB(h);
+}
+
+// Called on every keystroke in A/B inputs — save, derive, and re-render header badge only
+function scLiveDerive() {
+  scSaveHoleLive();
+  scSaveStorage();
+  // Re-render just the ✓/✗ badges without destroying focus
+  const h = scData.holes[scData.currentHole];
+  const par = h.par;
+  const aThresh = par ? scAThreshold(par) : null;
+  // Update Row A badge
+  const aBlock = document.getElementById('sc-shots-to-zone');
+  if (aBlock) {
+    const hdr = aBlock.closest('.sc-row-block')?.querySelector('.sc-row-hdr');
+    if (hdr) {
+      const badge = hdr.querySelector('.sc-ab-badge');
+      if (badge) {
+        badge.textContent = h.rowA===true ? '✓' : h.rowA===false ? '✗' : '—';
+        badge.style.color = h.rowA===true ? '#1a7a40' : h.rowA===false ? '#c0392b' : 'var(--text-3)';
+      }
+    }
+  }
+  const bBlock = document.getElementById('sc-shots-to-hole');
+  if (bBlock) {
+    const hdr = bBlock.closest('.sc-row-block')?.querySelector('.sc-row-hdr');
+    if (hdr) {
+      const badge = hdr.querySelector('.sc-ab-badge');
+      if (badge) {
+        badge.textContent = h.rowB===true ? '✓' : h.rowB===false ? '✗' : '—';
+        badge.style.color = h.rowB===true ? '#1a7a40' : h.rowB===false ? '#c0392b' : 'var(--text-3)';
+      }
+    }
+  }
+  // Update Row C display
+  const cDisp = document.getElementById('sc-row-c-val');
+  if (cDisp) {
+    const rowC = (h.rowA===true?1:0)+(h.rowB===true?1:0);
+    cDisp.textContent = (h.rowA!==null&&h.rowB!==null) ? rowC : (h.rowA!==null||h.rowB!==null) ? rowC : '—';
+  }
+  const cSub = document.getElementById('sc-row-c-sub');
+  if (cSub) {
+    const rowC = (h.rowA===true?1:0)+(h.rowB===true?1:0);
+    if (h.rowA===null && h.rowB===null) cSub.textContent = 'Enter shots above';
+    else if (h.rowA===null || h.rowB===null) cSub.textContent = rowC + ' so far';
+    else cSub.textContent = rowC===2 ? 'Full score' : rowC===1 ? 'Partial' : 'No score';
+  }
+  // Update progress dots
+  scRenderProgress();
+}
+
+// Called on every keystroke in the missed-putt length input (Row 1)
+function scLiveMiss() {
+  scSaveHoleLive();
+  scSaveStorage();
+  // Update badge without losing focus
+  const h = scData.holes[scData.currentHole];
+  const mlEl = document.getElementById('sc-miss-len');
+  if (mlEl) {
+    const hdr = mlEl.closest('.sc-row-block')?.querySelector('.sc-row-hdr');
+    if (hdr) {
+      const badge = hdr.querySelector('.sc-ab-badge');
+      if (badge) {
+        const hasMiss = h.missLen !== '';
+        badge.textContent = hasMiss ? '✗' : '—';
+        badge.style.color = hasMiss ? '#c0392b' : 'var(--text-3)';
+        badge.style.fontSize = hasMiss ? '22px' : '18px';
+      }
+    }
+  }
+  scRenderProgress();
+}
+
+function scNextHole() {
+  scSaveHoleLive();
+  scSaveStorage();
+  if (scData.currentHole === 17) {
+    scShowSummary();
+    return;
+  }
+  scData.currentHole++;
+  scRenderProgress();
+  scRenderHole();
+  window.scrollTo(0,0);
+}
+
+function scPrevHole() {
+  scSaveHoleLive();
+  scSaveStorage();
+  if (scData.currentHole === 0) return;
+  scData.currentHole--;
+  scRenderProgress();
+  scRenderHole();
+  window.scrollTo(0,0);
+}
+
+function scBackToEntry() {
+  document.getElementById('sc-hole-view').style.display = '';
+  document.getElementById('sc-summary-view').style.display = 'none';
+  scRenderProgress();
+  scRenderHole();
+  window.scrollTo(0,0);
+}
+
+function scShowSummary() {
+  // Save notes if already on summary
+  const notesEl = document.getElementById('sc-notes-ta');
+  if (notesEl) scData.notes = notesEl.value;
+  scSaveStorage();
+
+  document.getElementById('sc-hole-view').style.display = 'none';
+  document.getElementById('sc-summary-view').style.display = '';
+  document.getElementById('sc-pill').textContent = 'Summary';
+
+  const holes = scData.holes;
+  // Totals
+  let totalA = 0, totalASet = 0, totalB = 0, totalBSet = 0, totalC = 0;
+  let totalPutts = 0, totalPuttsN = 0;
+  let front9A=0,front9B=0,front9C=0,back9A=0,back9B=0,back9C=0;
+  let totalXsA=0, totalXsB=0, totalMisses=0, missLengths=[];
+
+  holes.forEach((h,i) => {
+    if (h.rowA !== null) { totalASet++; if (h.rowA) { totalA++; if(i<9) front9A++; else back9A++; } else { totalXsA++; } }
+    if (h.rowB !== null) { totalBSet++; if (h.rowB) { totalB++; if(i<9) front9B++; else back9B++; } else { totalXsB++; } }
+    if (h.rowA !== null && h.rowB !== null) {
+      const c = (h.rowA?1:0)+(h.rowB?1:0);
+      totalC += c;
+      if(i<9) front9C+=c; else back9C+=c;
+    }
+    if (h.totalPutts !== '') { totalPutts += parseInt(h.totalPutts)||0; totalPuttsN++; }
+    if (h.missLen !== '') { totalMisses++; missLengths.push(parseFloat(h.missLen)); }
+  });
+
+  // Totals cards
+  document.getElementById('sc-totals-cards').innerHTML = `
+    <div class="sc-totals-card highlight">
+      <div class="tc-label">Total score (C)</div>
+      <div class="tc-val">${totalC}</div>
+      <div class="tc-sub">Front: ${front9C} · Back: ${back9C}</div>
+    </div>
+    <div class="sc-totals-card">
+      <div class="tc-label">Row A — Entering zone</div>
+      <div class="tc-val">${totalA}/${totalASet}</div>
+      <div class="tc-sub">${totalXsA} misses · F:${front9A} B:${back9A}</div>
+    </div>
+    <div class="sc-totals-card">
+      <div class="tc-label">Row B — Down in zone</div>
+      <div class="tc-val">${totalB}/${totalBSet}</div>
+      <div class="tc-sub">${totalXsB} misses · F:${front9B} B:${back9B}</div>
+    </div>
+    <div class="sc-totals-card">
+      <div class="tc-label">Total putts</div>
+      <div class="tc-val">${totalPuttsN>0?totalPutts:'—'}</div>
+      <div class="tc-sub">${scData.meta.scoreVsPar ? 'Score vs par: '+scData.meta.scoreVsPar : ''}</div>
+    </div>
+  `;
+
+  // Print table (all 18 holes)
+  const parRow = `<tr><th class="pt-label pt-hdr">PAR</th>${holes.slice(0,9).map(h=>`<td class="pt-hdr">${h.par||'—'}</td>`).join('')}<td class="pt-total"></td>${holes.slice(9).map(h=>`<td class="pt-hdr">${h.par||'—'}</td>`).join('')}<td class="pt-total"></td></tr>`;
+  const makeCell = (val) => val===true ? `<td class="pt-tick">✓</td>` : val===false ? `<td class="pt-cross">✗</td>` : `<td>—</td>`;
+  const numCell = (v) => v!=='' ? `<td class="pt-num">${v}</td>` : `<td>—</td>`;
+  const totCell = (vals, fn) => { const vs=vals.filter(v=>v!==null&&v!==undefined&&v!==''); return `<td class="pt-total">${vs.length?fn(vs):'—'}</td>`; };
+  const rowAFront = holes.slice(0,9).map(h=>h.rowA); const rowABack = holes.slice(9).map(h=>h.rowA);
+  const rowBFront = holes.slice(0,9).map(h=>h.rowB); const rowBBack = holes.slice(9).map(h=>h.rowB);
+  const cFront = holes.slice(0,9).map(h=>h.rowA!==null&&h.rowB!==null?(h.rowA?1:0)+(h.rowB?1:0):null);
+  const cBack  = holes.slice(9).map(h=>h.rowA!==null&&h.rowB!==null?(h.rowA?1:0)+(h.rowB?1:0):null);
+  const countTick = arr => arr.filter(v=>v===true).length + '/' + arr.filter(v=>v!==null).length;
+  const sumArr = arr => arr.filter(v=>v!==null).reduce((a,b)=>a+b,0);
+  const tableHTML = `
+    <thead>
+      <tr>
+        <th class="pt-label pt-hdr">HOLE</th>
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`<th class="pt-hdr">${n}</th>`).join('')}
+        <th class="pt-total pt-hdr">FRONT</th>
+        ${[10,11,12,13,14,15,16,17,18].map(n=>`<th class="pt-hdr">${n}</th>`).join('')}
+        <th class="pt-total pt-hdr">BACK</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${parRow}
+      <tr>
+        <td class="pt-label">A — Entering zone</td>
+        ${rowAFront.map(makeCell).join('')}
+        <td class="pt-total">${countTick(rowAFront)}</td>
+        ${rowABack.map(makeCell).join('')}
+        <td class="pt-total">${countTick(rowABack)}</td>
+      </tr>
+      <tr>
+        <td class="pt-label">B — Down in zone</td>
+        ${rowBFront.map(makeCell).join('')}
+        <td class="pt-total">${countTick(rowBFront)}</td>
+        ${rowBBack.map(makeCell).join('')}
+        <td class="pt-total">${countTick(rowBBack)}</td>
+      </tr>
+      <tr class="pt-rowC">
+        <td class="pt-label">C — Score (A+B)</td>
+        ${cFront.map(v=>v!==null?`<td class="pt-rowC">${v}</td>`:`<td>—</td>`).join('')}
+        <td class="pt-total">${sumArr(cFront.filter(v=>v!==null))}</td>
+        ${cBack.map(v=>v!==null?`<td class="pt-rowC">${v}</td>`:`<td>—</td>`).join('')}
+        <td class="pt-total">${sumArr(cBack.filter(v=>v!==null))}</td>
+      </tr>
+      <tr>
+        <td class="pt-label">1 — Miss &lt;4ft (ft)</td>
+        ${holes.slice(0,9).map(h=>h.missLen!==''?`<td class="pt-cross">${h.missLen}'</td>`:`<td>—</td>`).join('')}
+        <td class="pt-total">${holes.slice(0,9).filter(h=>h.missLen!=='').length||'—'}</td>
+        ${holes.slice(9).map(h=>h.missLen!==''?`<td class="pt-cross">${h.missLen}'</td>`:`<td>—</td>`).join('')}
+        <td class="pt-total">${holes.slice(9).filter(h=>h.missLen!=='').length||'—'}</td>
+      </tr>
+      <tr>
+        <td class="pt-label">1 — Prox (m)</td>
+        ${holes.slice(0,9).map(h=>numCell(h.prox)).join('')}
+        <td class="pt-total">—</td>
+        ${holes.slice(9).map(h=>numCell(h.prox)).join('')}
+        <td class="pt-total">—</td>
+      </tr>
+      <tr>
+        <td class="pt-label">2 — Total putts</td>
+        ${holes.slice(0,9).map(h=>numCell(h.totalPutts)).join('')}
+        <td class="pt-total">${holes.slice(0,9).filter(h=>h.totalPutts!=='').reduce((a,h)=>a+(parseInt(h.totalPutts)||0),0)||'—'}</td>
+        ${holes.slice(9).map(h=>numCell(h.totalPutts)).join('')}
+        <td class="pt-total">${holes.slice(9).filter(h=>h.totalPutts!=='').reduce((a,h)=>a+(parseInt(h.totalPutts)||0),0)||'—'}</td>
+      </tr>
+    </tbody>
+  `;
+  document.getElementById('sc-print-table').innerHTML = tableHTML;
+
+  // Feedback (successes and failures)
+  document.getElementById('sc-feedback-cards').innerHTML = `
+    <div class="sc-feedback-card success">
+      <div class="fc-title">Successes</div>
+      <div class="fc-row"><span class="fc-row-label">A — Enter zone</span><span class="fc-row-val">${totalA}</span></div>
+      <div class="fc-row"><span class="fc-row-label">B — Down in zone</span><span class="fc-row-val">${totalB}</span></div>
+      <div class="fc-row"><span class="fc-row-label">Score (C)</span><span class="fc-row-val">${totalC}</span></div>
+      ${totalPuttsN>0?`<div class="fc-row"><span class="fc-row-label">Total putts</span><span class="fc-row-val">${totalPutts}</span></div>`:''}
+    </div>
+    <div class="sc-feedback-card failure">
+      <div class="fc-title">Feedback (PP)</div>
+      <div class="fc-row"><span class="fc-row-label">Not in zone (A ✗)</span><span class="fc-row-val">${totalXsA}</span></div>
+      <div class="fc-row"><span class="fc-row-label">Not down (B ✗)</span><span class="fc-row-val">${totalXsB}</span></div>
+      <div class="fc-row"><span class="fc-row-label">Missed &lt;4ft putts</span><span class="fc-row-val">${totalMisses}${missLengths.length?` (${missLengths.map(l=>l+"'").join(', ')})`:''}</span></div>
+      <div class="fc-row"><span class="fc-row-label">PP total</span><span class="fc-row-val">${totalXsA + totalXsB}</span></div>
+    </div>
+  `;
+
+  // 10 Keys
+  const keysList = document.getElementById('sc-keys-list');
+  keysList.innerHTML = SC_10KEYS.map((key, i) => `
+    <div class="sc-key-item">
+      <div class="sc-key-num">${i+1}</div>
+      <div class="sc-key-text">${key.k}
+        <span class="sc-key-soln">${key.s}</span>
+      </div>
+      <input type="checkbox" class="sc-key-broken" id="sc-key-${i}" ${scData.keysBroken[i]?'checked':''} onchange="scData.keysBroken[${i}]=this.checked;scSaveStorage()" style="width:20px;height:20px;cursor:pointer;">
+    </div>
+  `).join('');
+
+  // Notes
+  document.getElementById('sc-notes-ta').value = scData.notes || '';
+  document.getElementById('sc-notes-ta').oninput = () => { scData.notes = document.getElementById('sc-notes-ta').value; scSaveStorage(); };
+
+  window.scrollTo(0,0);
+}
+
+function scPrint() {
+  scSaveHoleLive();
+  scData.notes = document.getElementById('sc-notes-ta')?.value || '';
+  scSaveStorage();
+  window.print();
+}
+
+// New round — clears scorecard data
+function scNewRound() {
+  if (!confirm('Start a new round? This will clear the current scorecard.')) return;
+  scData = {
+    meta: { name: document.getElementById('sc-name')?.value||'', course: document.getElementById('sc-course')?.value||'Bonnie Doon GC', date: new Date().toISOString().split('T')[0], tee:'', scoreVsPar:'' },
+    holes: Array.from({length:18}, () => ({ par:null, shotsToZone:'', shotsToHole:'', rowA:null, rowB:null, missLen:'', prox:'', totalPutts:'' })),
+    currentHole: 0,
+    keysBroken: Array(10).fill(false),
+    notes: ''
+  };
+  scSaveStorage();
+  startScoring();
 }
 
 init();
