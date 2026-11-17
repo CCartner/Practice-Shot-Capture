@@ -1508,8 +1508,12 @@
   </div>
   <div class="session-body" style="padding:0">
     <div id="sc-hole-view" class="sc-wrap">
-      <!-- Meta fields -->
-      <div class="sc-meta">
+      <!-- Meta fields — collapsible -->
+      <div id="sc-meta-toggle" onclick="scToggleMeta()" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px 6px;cursor:pointer;border-bottom:1px solid var(--border)">
+        <span style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em">Round details</span>
+        <span id="sc-meta-arrow" style="font-size:12px;color:var(--text-3)">▼</span>
+      </div>
+      <div class="sc-meta" id="sc-meta-fields" style="display:none">
         <div class="sc-meta-field full">
           <label>Name</label>
           <input type="text" id="sc-name" placeholder="Your name">
@@ -3008,6 +3012,14 @@ function scGoHome() {
   window.scrollTo(0,0);
 }
 
+function scToggleMeta() {
+  const fields = document.getElementById('sc-meta-fields');
+  const arrow  = document.getElementById('sc-meta-arrow');
+  const open   = fields.style.display !== 'none';
+  fields.style.display = open ? 'none' : 'grid';
+  arrow.textContent    = open ? '▼' : '▲';
+}
+
 function startScoring() {
   scLoadStorage();
   show('s-scoring');
@@ -3124,8 +3136,8 @@ function scRenderHole() {
       <div class="sc-row-body">
         <div class="sc-num-row" style="width:100%">
           <div class="sc-num-block">
-            <label>Missed putt (ft) — blank if none</label>
-            <input class="sc-num-input" type="number" id="sc-miss-len" value="${h.missLen}" placeholder="e.g. 3" inputmode="decimal" min="0.5" max="4" step="0.5"
+            <label>Miss &lt;4ft — enter x or length (ft)</label>
+            <input class="sc-num-input" type="text" id="sc-miss-len" value="${h.missLen}" placeholder="x or 3" inputmode="decimal" autocorrect="off" autocapitalize="none"
               oninput="scLiveMiss()">
           </div>
           <div class="sc-num-block">
@@ -3190,74 +3202,30 @@ function scSaveHoleLive() {
   scDeriveAB(h);
 }
 
-// Called on every keystroke in A/B inputs — save, derive, and re-render header badge only
-function scLiveDerive() {
+// Re-render the hole, restoring focus and cursor position to the active input
+function scLiveRerender(activeId) {
   scSaveHoleLive();
   scSaveStorage();
-  // Re-render just the ✓/✗ badges without destroying focus
-  const h = scData.holes[scData.currentHole];
-  const par = h.par;
-  const aThresh = par ? scAThreshold(par) : null;
-  // Update Row A badge
-  const aBlock = document.getElementById('sc-shots-to-zone');
-  if (aBlock) {
-    const hdr = aBlock.closest('.sc-row-block')?.querySelector('.sc-row-hdr');
-    if (hdr) {
-      const badge = hdr.querySelector('.sc-ab-badge');
-      if (badge) {
-        badge.textContent = h.rowA===true ? '✓' : h.rowA===false ? '✗' : '—';
-        badge.style.color = h.rowA===true ? '#1a7a40' : h.rowA===false ? '#c0392b' : 'var(--text-3)';
-      }
+  // Remember which input was active and its value
+  const activeEl = activeId ? document.getElementById(activeId) : document.activeElement;
+  const focusId = activeEl ? activeEl.id : null;
+  const cursorPos = activeEl ? activeEl.selectionStart : null;
+  scRenderHole();
+  // Restore focus and cursor
+  if (focusId) {
+    const el = document.getElementById(focusId);
+    if (el) {
+      el.focus();
+      try { if (cursorPos !== null) el.setSelectionRange(cursorPos, cursorPos); } catch(e) {}
     }
   }
-  const bBlock = document.getElementById('sc-shots-to-hole');
-  if (bBlock) {
-    const hdr = bBlock.closest('.sc-row-block')?.querySelector('.sc-row-hdr');
-    if (hdr) {
-      const badge = hdr.querySelector('.sc-ab-badge');
-      if (badge) {
-        badge.textContent = h.rowB===true ? '✓' : h.rowB===false ? '✗' : '—';
-        badge.style.color = h.rowB===true ? '#1a7a40' : h.rowB===false ? '#c0392b' : 'var(--text-3)';
-      }
-    }
-  }
-  // Update Row C display
-  const rowC = (h.rowA===true?1:0)+(h.rowB===true?1:0);
-  const cDisp = document.getElementById('sc-row-c-val');
-  if (cDisp) {
-    cDisp.textContent = (h.rowA===null && h.rowB===null) ? '—' : rowC;
-  }
-  const cSub = document.getElementById('sc-row-c-sub');
-  if (cSub) {
-    if (h.rowA===null && h.rowB===null) cSub.textContent = 'Enter shots above';
-    else if (h.rowA===null || h.rowB===null) cSub.textContent = rowC + ' so far';
-    else cSub.textContent = rowC===2 ? 'Full score' : rowC===1 ? 'Partial' : 'No score';
-  }
-  // Update progress dots
-  scRenderProgress();
 }
 
-// Called on every keystroke in the missed-putt length input (Row 1)
-function scLiveMiss() {
-  scSaveHoleLive();
-  scSaveStorage();
-  // Update badge without losing focus
-  const h = scData.holes[scData.currentHole];
-  const mlEl = document.getElementById('sc-miss-len');
-  if (mlEl) {
-    const hdr = mlEl.closest('.sc-row-block')?.querySelector('.sc-row-hdr');
-    if (hdr) {
-      const badge = hdr.querySelector('.sc-ab-badge');
-      if (badge) {
-        const hasMiss = h.missLen !== '';
-        badge.textContent = hasMiss ? '✗' : '—';
-        badge.style.color = hasMiss ? '#c0392b' : 'var(--text-3)';
-        badge.style.fontSize = hasMiss ? '22px' : '18px';
-      }
-    }
-  }
-  scRenderProgress();
-}
+// Called on every keystroke in A/B inputs
+function scLiveDerive() { scLiveRerender(document.activeElement?.id || 'sc-shots-to-zone'); }
+
+// Called on every keystroke in the missed-putt input (Row 1)
+function scLiveMiss() { scLiveRerender('sc-miss-len'); }
 
 function scNextHole() {
   scSaveHoleLive();
