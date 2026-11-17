@@ -1552,6 +1552,7 @@
     <!-- Summary view -->
     <div id="sc-summary-view" class="sc-summary-wrap" style="display:none">
       <div class="sc-summary-title">Scorecard Summary</div>
+      <div id="sc-meta-banner" style="padding:6px 14px 10px;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12px;color:var(--text-2);border-bottom:1px solid var(--border);margin-bottom:6px"></div>
       <div id="sc-totals-cards" class="sc-totals-grid"></div>
       <div class="sc-hole-scroll">
         <table class="sc-print-table" id="sc-print-table"></table>
@@ -3319,6 +3320,12 @@ function scBackToEntry() {
 }
 
 function scShowSummary() {
+  // Save meta fields before rendering summary
+  scData.meta.name       = document.getElementById('sc-name')?.value       || scData.meta.name;
+  scData.meta.course     = document.getElementById('sc-course')?.value     || scData.meta.course;
+  scData.meta.date       = document.getElementById('sc-date')?.value       || scData.meta.date;
+  scData.meta.tee        = document.getElementById('sc-tee')?.value        || scData.meta.tee;
+  scData.meta.scoreVsPar = document.getElementById('sc-score-vs-par')?.value || scData.meta.scoreVsPar;
   // Save notes if already on summary
   const notesEl = document.getElementById('sc-notes-ta');
   if (notesEl) scData.notes = notesEl.value;
@@ -3327,6 +3334,18 @@ function scShowSummary() {
   document.getElementById('sc-hole-view').style.display = 'none';
   document.getElementById('sc-summary-view').style.display = '';
   document.getElementById('sc-pill').textContent = 'Summary';
+
+  // Meta banner
+  const m = scData.meta;
+  const fmtDate = d => { if (!d) return ''; try { const [y,mo,dy]=d.split('-'); return `${dy}/${mo}/${y}`; } catch(e){return d;} };
+  const metaItems = [
+    m.name       ? `<span><strong>Player:</strong> ${m.name}</span>` : '',
+    m.course     ? `<span><strong>Course:</strong> ${m.course}</span>` : '',
+    m.date       ? `<span><strong>Date:</strong> ${fmtDate(m.date)}</span>` : '',
+    m.tee        ? `<span><strong>Tee:</strong> ${m.tee}</span>` : '',
+    m.scoreVsPar ? `<span><strong>Score vs par:</strong> ${m.scoreVsPar}</span>` : '',
+  ].filter(Boolean);
+  document.getElementById('sc-meta-banner').innerHTML = metaItems.length ? metaItems.join('') : '<span style="color:var(--text-3);font-style:italic">No round details entered</span>';
 
   const holes = scData.holes;
   // Totals
