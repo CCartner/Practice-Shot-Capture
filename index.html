@@ -3221,11 +3221,77 @@ function scLiveRerender(activeId) {
   }
 }
 
-// Called on every keystroke in A/B inputs
-function scLiveDerive() { scLiveRerender(document.activeElement?.id || 'sc-shots-to-zone'); }
+// Targeted DOM update for A/B badges and Row C — no re-render, safe on iOS Safari
+function scLiveDerive() {
+  scSaveHoleLive();
+  scSaveStorage();
+  const h = scData.holes[scData.currentHole];
 
-// Called on every keystroke in the missed-putt input (Row 1)
-function scLiveMiss() { scLiveRerender('sc-miss-len'); }
+  // Update Row A badge — find badge inside Row A block (parent of #sc-shots-to-zone)
+  const stzEl = document.getElementById('sc-shots-to-zone');
+  if (stzEl) {
+    const rowBlock = stzEl.closest('.sc-row-block');
+    if (rowBlock) {
+      const badge = rowBlock.querySelector('.sc-ab-badge');
+      if (badge) {
+        if (h.rowA === true)       { badge.textContent='✓'; badge.style.fontSize='22px'; badge.style.color='#1a7a40'; }
+        else if (h.rowA === false) { badge.textContent='✗'; badge.style.fontSize='22px'; badge.style.color='#c0392b'; }
+        else                       { badge.textContent='—'; badge.style.fontSize='18px'; badge.style.color='var(--text-3)'; }
+      }
+    }
+  }
+
+  // Update Row B badge
+  const sthEl = document.getElementById('sc-shots-to-hole');
+  if (sthEl) {
+    const rowBlock = sthEl.closest('.sc-row-block');
+    if (rowBlock) {
+      const badge = rowBlock.querySelector('.sc-ab-badge');
+      if (badge) {
+        if (h.rowB === true)       { badge.textContent='✓'; badge.style.fontSize='22px'; badge.style.color='#1a7a40'; }
+        else if (h.rowB === false) { badge.textContent='✗'; badge.style.fontSize='22px'; badge.style.color='#c0392b'; }
+        else                       { badge.textContent='—'; badge.style.fontSize='18px'; badge.style.color='var(--text-3)'; }
+      }
+    }
+  }
+
+  // Update Row C
+  const rowC = (h.rowA === true ? 1 : 0) + (h.rowB === true ? 1 : 0);
+  const cVal = document.getElementById('sc-row-c-val');
+  const cSub = document.getElementById('sc-row-c-sub');
+  if (cVal) {
+    if (h.rowA === null && h.rowB === null) {
+      cVal.textContent = '—';
+    } else {
+      cVal.textContent = String(rowC);
+    }
+  }
+  if (cSub) {
+    if (h.rowA === null && h.rowB === null)   cSub.textContent = 'Set A and B first';
+    else if (h.rowA === null || h.rowB === null) cSub.textContent = rowC + ' so far';
+    else cSub.textContent = rowC === 2 ? 'Full score' : rowC === 1 ? 'Partial score' : 'No score';
+  }
+
+  scRenderProgress();
+}
+
+// Called on every keystroke in the missed-putt input (Row 1) — targeted update
+function scLiveMiss() {
+  scSaveHoleLive();
+  scSaveStorage();
+  const h = scData.holes[scData.currentHole];
+  const mlEl = document.getElementById('sc-miss-len');
+  if (mlEl) {
+    const rowBlock = mlEl.closest('.sc-row-block');
+    if (rowBlock) {
+      const badge = rowBlock.querySelector('.sc-ab-badge');
+      if (badge) {
+        if (h.missLen !== '') { badge.textContent='✗'; badge.style.fontSize='22px'; badge.style.color='#c0392b'; }
+        else                  { badge.textContent='—'; badge.style.fontSize='18px'; badge.style.color='var(--text-3)'; }
+      }
+    }
+  }
+}
 
 function scNextHole() {
   scSaveHoleLive();
