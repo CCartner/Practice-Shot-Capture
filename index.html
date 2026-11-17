@@ -516,6 +516,10 @@
   .sc-print-table .pt-tick { background: #e6f5ec; color: #1a7a40; font-weight: 700; font-size: 14px; }
   .sc-print-table .pt-cross { background: #fbeae8; color: #c0392b; font-weight: 700; font-size: 14px; }
   .sc-print-table .pt-rowC { background: var(--accent-light); font-weight: 700; }
+  .sc-print-table .pt-diag { position: relative; padding: 0 !important; overflow: hidden; min-width: 28px; height: 28px; }
+  .sc-print-table .pt-diag::after { content:''; position:absolute; top:0; left:0; right:0; bottom:0; background: linear-gradient(to bottom right, transparent calc(50% - 0.5px), #999 calc(50% - 0.5px), #999 calc(50% + 0.5px), transparent calc(50% + 0.5px)); pointer-events:none; }
+  .sc-print-table .pt-diag .pd-top { position:absolute; top:1px; left:2px; font-size:9px; font-weight:700; line-height:1; color:#333; }
+  .sc-print-table .pt-diag .pd-bot { position:absolute; bottom:1px; right:2px; font-size:11px; font-weight:800; line-height:1; }
   .sc-print-table .pt-num { font-weight: 600; }
   .sc-feedback-section { margin-bottom: 14px; }
   .sc-feedback-title { font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
@@ -1524,7 +1528,7 @@
         </div>
         <div class="sc-meta-field">
           <label>Score vs par</label>
-          <input type="number" id="sc-score-vs-par" placeholder="+9" inputmode="decimal">
+          <input type="text" id="sc-score-vs-par" placeholder="+3 or -1" inputmode="text" pattern="[+-]?[0-9]*" style="width:80px">
         </div>
       </div>
       <!-- Progress dots -->
@@ -3112,21 +3116,21 @@ function scRenderHole() {
     <div class="sc-row-block" style="margin:0 14px 8px">
       <div class="sc-row-hdr">
         <div class="sc-row-label">1</div>
-        <div class="sc-row-desc">Putts missed &lt;4ft · proximity to hole
-          <br><small>Enter length (ft) of any putt missed inside 4ft — ✗ auto-recorded</small>
+        <div class="sc-row-desc">Missed putt &lt;4ft · proximity (ft)
+          <br><small>Enter miss length if putt missed inside 4ft — ✗ auto-recorded · Leave blank if none missed</small>
         </div>
         ${h.missLen !== '' ? `<span class="sc-ab-badge" style="font-size:22px;color:#c0392b;font-weight:800;margin-left:auto">✗</span>` : `<span class="sc-ab-badge" style="font-size:18px;color:var(--text-3);margin-left:auto">—</span>`}
       </div>
       <div class="sc-row-body">
         <div class="sc-num-row" style="width:100%">
           <div class="sc-num-block">
-            <label>Missed putt length (ft)</label>
-            <input class="sc-num-input" type="number" id="sc-miss-len" value="${h.missLen}" placeholder="Leave blank if none" inputmode="decimal" min="0.5" max="4" step="0.5"
+            <label>Missed putt (ft) — blank if none</label>
+            <input class="sc-num-input" type="number" id="sc-miss-len" value="${h.missLen}" placeholder="e.g. 3" inputmode="decimal" min="0.5" max="4" step="0.5"
               oninput="scLiveMiss()">
           </div>
           <div class="sc-num-block">
-            <label>Proximity (m)</label>
-            <input class="sc-num-input" type="number" id="sc-prox" value="${h.prox}" placeholder="8.5" inputmode="decimal" onchange="scSaveHoleLive()">
+            <label>Proximity (ft)</label>
+            <input class="sc-num-input" type="number" id="sc-prox" value="${h.prox}" placeholder="e.g. 12" inputmode="decimal" onchange="scSaveHoleLive()">
           </div>
         </div>
       </div>
@@ -3218,14 +3222,13 @@ function scLiveDerive() {
     }
   }
   // Update Row C display
+  const rowC = (h.rowA===true?1:0)+(h.rowB===true?1:0);
   const cDisp = document.getElementById('sc-row-c-val');
   if (cDisp) {
-    const rowC = (h.rowA===true?1:0)+(h.rowB===true?1:0);
-    cDisp.textContent = (h.rowA!==null&&h.rowB!==null) ? rowC : (h.rowA!==null||h.rowB!==null) ? rowC : '—';
+    cDisp.textContent = (h.rowA===null && h.rowB===null) ? '—' : rowC;
   }
   const cSub = document.getElementById('sc-row-c-sub');
   if (cSub) {
-    const rowC = (h.rowA===true?1:0)+(h.rowB===true?1:0);
     if (h.rowA===null && h.rowB===null) cSub.textContent = 'Enter shots above';
     else if (h.rowA===null || h.rowB===null) cSub.textContent = rowC + ' so far';
     else cSub.textContent = rowC===2 ? 'Full score' : rowC===1 ? 'Partial' : 'No score';
@@ -3342,14 +3345,32 @@ function scShowSummary() {
 
   // Print table (all 18 holes)
   const parRow = `<tr><th class="pt-label pt-hdr">PAR</th>${holes.slice(0,9).map(h=>`<td class="pt-hdr">${h.par||'—'}</td>`).join('')}<td class="pt-total"></td>${holes.slice(9).map(h=>`<td class="pt-hdr">${h.par||'—'}</td>`).join('')}<td class="pt-total"></td></tr>`;
-  const makeCell = (val) => val===true ? `<td class="pt-tick">✓</td>` : val===false ? `<td class="pt-cross">✗</td>` : `<td>—</td>`;
   const numCell = (v) => v!=='' ? `<td class="pt-num">${v}</td>` : `<td>—</td>`;
   const totCell = (vals, fn) => { const vs=vals.filter(v=>v!==null&&v!==undefined&&v!==''); return `<td class="pt-total">${vs.length?fn(vs):'—'}</td>`; };
-  const rowAFront = holes.slice(0,9).map(h=>h.rowA); const rowABack = holes.slice(9).map(h=>h.rowA);
-  const rowBFront = holes.slice(0,9).map(h=>h.rowB); const rowBBack = holes.slice(9).map(h=>h.rowB);
+  // Diagonal cell: top-left = shot count, bottom-right = ✓/✗
+  const diagAB = (h, field, shots) => {
+    const result = h[field];
+    const count = h[shots];
+    if (result === null) return `<td>—</td>`;
+    const tickCol = result ? '#1a7a40' : '#c0392b';
+    const bgCol = result ? '#e6f5ec' : '#fbeae8';
+    return `<td class="pt-diag" style="background:${bgCol}"><span class="pd-top">${count||''}</span><span class="pd-bot" style="color:${tickCol}">${result?'✓':'✗'}</span></td>`;
+  };
+  // Diagonal cell for Row 1: top-left = miss length, bottom-right = ✗ (or blank prox)
+  const diagRow1 = (h) => {
+    const hasMiss = h.missLen !== '';
+    const hasProx = h.prox !== '';
+    if (!hasMiss && !hasProx) return `<td>—</td>`;
+    return `<td class="pt-diag" style="background:${hasMiss?'#fbeae8':''}">
+      <span class="pd-top" style="color:#333">${hasProx ? h.prox+"'" : ''}</span>
+      <span class="pd-bot" style="color:#c0392b">${hasMiss ? h.missLen+"'✗" : ''}</span>
+    </td>`;
+  };
+  const rowAFront = holes.slice(0,9); const rowABack = holes.slice(9);
   const cFront = holes.slice(0,9).map(h=>h.rowA!==null&&h.rowB!==null?(h.rowA?1:0)+(h.rowB?1:0):null);
   const cBack  = holes.slice(9).map(h=>h.rowA!==null&&h.rowB!==null?(h.rowA?1:0)+(h.rowB?1:0):null);
-  const countTick = arr => arr.filter(v=>v===true).length + '/' + arr.filter(v=>v!==null).length;
+  const countTickH = arr => arr.filter(h=>h.rowA===true).length + '/' + arr.filter(h=>h.rowA!==null).length;
+  const countTickHB = arr => arr.filter(h=>h.rowB===true).length + '/' + arr.filter(h=>h.rowB!==null).length;
   const sumArr = arr => arr.filter(v=>v!==null).reduce((a,b)=>a+b,0);
   const tableHTML = `
     <thead>
@@ -3365,17 +3386,17 @@ function scShowSummary() {
       ${parRow}
       <tr>
         <td class="pt-label">A — Entering zone</td>
-        ${rowAFront.map(makeCell).join('')}
-        <td class="pt-total">${countTick(rowAFront)}</td>
-        ${rowABack.map(makeCell).join('')}
-        <td class="pt-total">${countTick(rowABack)}</td>
+        ${rowAFront.map(h=>diagAB(h,'rowA','shotsToZone')).join('')}
+        <td class="pt-total">${countTickH(rowAFront)}</td>
+        ${rowABack.map(h=>diagAB(h,'rowA','shotsToZone')).join('')}
+        <td class="pt-total">${countTickH(rowABack)}</td>
       </tr>
       <tr>
         <td class="pt-label">B — Down in zone</td>
-        ${rowBFront.map(makeCell).join('')}
-        <td class="pt-total">${countTick(rowBFront)}</td>
-        ${rowBBack.map(makeCell).join('')}
-        <td class="pt-total">${countTick(rowBBack)}</td>
+        ${rowAFront.map(h=>diagAB(h,'rowB','shotsToHole')).join('')}
+        <td class="pt-total">${countTickHB(rowAFront)}</td>
+        ${rowABack.map(h=>diagAB(h,'rowB','shotsToHole')).join('')}
+        <td class="pt-total">${countTickHB(rowABack)}</td>
       </tr>
       <tr class="pt-rowC">
         <td class="pt-label">C — Score (A+B)</td>
@@ -3385,18 +3406,11 @@ function scShowSummary() {
         <td class="pt-total">${sumArr(cBack.filter(v=>v!==null))}</td>
       </tr>
       <tr>
-        <td class="pt-label">1 — Miss &lt;4ft (ft)</td>
-        ${holes.slice(0,9).map(h=>h.missLen!==''?`<td class="pt-cross">${h.missLen}'</td>`:`<td>—</td>`).join('')}
+        <td class="pt-label">1 — Miss✗(ft) / Prox(ft)</td>
+        ${holes.slice(0,9).map(h=>diagRow1(h)).join('')}
         <td class="pt-total">${holes.slice(0,9).filter(h=>h.missLen!=='').length||'—'}</td>
-        ${holes.slice(9).map(h=>h.missLen!==''?`<td class="pt-cross">${h.missLen}'</td>`:`<td>—</td>`).join('')}
+        ${holes.slice(9).map(h=>diagRow1(h)).join('')}
         <td class="pt-total">${holes.slice(9).filter(h=>h.missLen!=='').length||'—'}</td>
-      </tr>
-      <tr>
-        <td class="pt-label">1 — Prox (m)</td>
-        ${holes.slice(0,9).map(h=>numCell(h.prox)).join('')}
-        <td class="pt-total">—</td>
-        ${holes.slice(9).map(h=>numCell(h.prox)).join('')}
-        <td class="pt-total">—</td>
       </tr>
       <tr>
         <td class="pt-label">2 — Total putts</td>
