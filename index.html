@@ -2996,12 +2996,13 @@ function scLoadStorage() {
 
 function scSaveStorage() {
   try {
-    // Also capture live meta fields before saving
-    scData.meta.name = document.getElementById('sc-name')?.value || scData.meta.name;
-    scData.meta.course = document.getElementById('sc-course')?.value || scData.meta.course;
-    scData.meta.date = document.getElementById('sc-date')?.value || scData.meta.date;
-    scData.meta.tee = document.getElementById('sc-tee')?.value || scData.meta.tee;
-    scData.meta.scoreVsPar = document.getElementById('sc-score-vs-par')?.value || scData.meta.scoreVsPar;
+    // Capture live meta fields — only overwrite if the element exists (meta may be collapsed)
+    const readMeta = (id) => { const el = document.getElementById(id); return el !== null ? el.value : null; };
+    const n = readMeta('sc-name');       if (n !== null) scData.meta.name = n;
+    const c = readMeta('sc-course');     if (c !== null) scData.meta.course = c;
+    const d = readMeta('sc-date');       if (d !== null) scData.meta.date = d;
+    const t = readMeta('sc-tee');        if (t !== null) scData.meta.tee = t;
+    const s = readMeta('sc-score-vs-par'); if (s !== null) scData.meta.scoreVsPar = s;
     localStorage.setItem(SC_KEY, JSON.stringify(scData));
   } catch(e) {}
 }
@@ -3320,12 +3321,13 @@ function scBackToEntry() {
 }
 
 function scShowSummary() {
-  // Save meta fields before rendering summary
-  scData.meta.name       = document.getElementById('sc-name')?.value       || scData.meta.name;
-  scData.meta.course     = document.getElementById('sc-course')?.value     || scData.meta.course;
-  scData.meta.date       = document.getElementById('sc-date')?.value       || scData.meta.date;
-  scData.meta.tee        = document.getElementById('sc-tee')?.value        || scData.meta.tee;
-  scData.meta.scoreVsPar = document.getElementById('sc-score-vs-par')?.value || scData.meta.scoreVsPar;
+  // Save meta fields before rendering summary (only overwrite if element exists)
+  const _rm = (id) => { const el = document.getElementById(id); return el !== null ? el.value : null; };
+  const _n=_rm('sc-name');         if(_n!==null) scData.meta.name=_n;
+  const _c=_rm('sc-course');       if(_c!==null) scData.meta.course=_c;
+  const _d=_rm('sc-date');         if(_d!==null) scData.meta.date=_d;
+  const _t=_rm('sc-tee');          if(_t!==null) scData.meta.tee=_t;
+  const _s=_rm('sc-score-vs-par'); if(_s!==null) scData.meta.scoreVsPar=_s;
   // Save notes if already on summary
   const notesEl = document.getElementById('sc-notes-ta');
   if (notesEl) scData.notes = notesEl.value;
@@ -3419,8 +3421,15 @@ function scShowSummary() {
   const countTickH = arr => arr.filter(h=>h.rowA===true).length + '/' + arr.filter(h=>h.rowA!==null).length;
   const countTickHB = arr => arr.filter(h=>h.rowB===true).length + '/' + arr.filter(h=>h.rowB!==null).length;
   const sumArr = arr => arr.filter(v=>v!==null).reduce((a,b)=>a+b,0);
+  const metaLine = [
+    m.course     ? m.course : '',
+    m.date       ? fmtDate(m.date) : '',
+    m.tee        ? 'Tee: '+m.tee : '',
+    m.scoreVsPar ? 'Score: '+m.scoreVsPar : '',
+  ].filter(Boolean).join('  ·  ');
   const tableHTML = `
     <thead>
+      ${metaLine ? `<tr><th class="pt-label pt-hdr" colspan="21" style="text-align:left;font-size:11px;font-weight:600;color:var(--text-2);padding:4px 6px;white-space:nowrap;overflow:hidden">${metaLine}</th></tr>` : ''}
       <tr>
         <th class="pt-label pt-hdr">HOLE</th>
         ${[1,2,3,4,5,6,7,8,9].map(n=>`<th class="pt-hdr">${n}</th>`).join('')}
