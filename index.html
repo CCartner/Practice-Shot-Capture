@@ -3063,9 +3063,11 @@ function scRenderHole() {
   const aThresh = par ? scAThreshold(par) : null;
   const parLabel = par ? `Par ${par} — scoring zone: ≤${aThresh} shot${aThresh>1?'s':''} to 90m` : 'Set par first';
 
-  // Row C auto-compute
-  const rowC = (h.rowA === true ? 1 : 0) + (h.rowB === true ? 1 : 0);
-  const rowCDisplay = (h.rowA !== null && h.rowB !== null) ? rowC : '—';
+  // Row C auto-compute — sum of shots entered in A and B
+  const stzNum = h.shotsToZone !== '' ? parseInt(h.shotsToZone) : null;
+  const sthNum = h.shotsToHole !== '' ? parseInt(h.shotsToHole) : null;
+  const rowC = (stzNum !== null && !isNaN(stzNum) ? stzNum : 0) + (sthNum !== null && !isNaN(sthNum) ? sthNum : 0);
+  const rowCDisplay = (stzNum !== null || sthNum !== null) ? rowC : '—';
 
   const html = `
     <div class="sc-hole-nav">
@@ -3121,7 +3123,7 @@ function scRenderHole() {
       </div>
       <div class="sc-row-c-display">
         <div class="sc-score-display" id="sc-row-c-val">${rowCDisplay}</div>
-        <div class="sc-score-sub" id="sc-row-c-sub">${(h.rowA!==null&&h.rowB!==null) ? (rowC===2?'Full score':'Partial score') : 'Set A and B first'}</div>
+        <div class="sc-score-sub" id="sc-row-c-sub">${(stzNum===null&&sthNum===null) ? 'Enter shots in A and B' : 'Total shots A + B'}</div>
       </div>
     </div>
     <!-- Row 1 -->
@@ -3255,22 +3257,14 @@ function scLiveDerive() {
     }
   }
 
-  // Update Row C
-  const rowC = (h.rowA === true ? 1 : 0) + (h.rowB === true ? 1 : 0);
+  // Update Row C — sum of shots entered in A and B
+  const stzNum = h.shotsToZone !== '' ? parseInt(h.shotsToZone) : null;
+  const sthNum = h.shotsToHole !== '' ? parseInt(h.shotsToHole) : null;
+  const rowC = (stzNum !== null && !isNaN(stzNum) ? stzNum : 0) + (sthNum !== null && !isNaN(sthNum) ? sthNum : 0);
   const cVal = document.getElementById('sc-row-c-val');
   const cSub = document.getElementById('sc-row-c-sub');
-  if (cVal) {
-    if (h.rowA === null && h.rowB === null) {
-      cVal.textContent = '—';
-    } else {
-      cVal.textContent = String(rowC);
-    }
-  }
-  if (cSub) {
-    if (h.rowA === null && h.rowB === null)   cSub.textContent = 'Set A and B first';
-    else if (h.rowA === null || h.rowB === null) cSub.textContent = rowC + ' so far';
-    else cSub.textContent = rowC === 2 ? 'Full score' : rowC === 1 ? 'Partial score' : 'No score';
-  }
+  if (cVal) cVal.textContent = (stzNum === null && sthNum === null) ? '—' : String(rowC);
+  if (cSub) cSub.textContent = (stzNum === null && sthNum === null) ? 'Enter shots in A and B' : 'Total shots A + B';
 
   scRenderProgress();
 }
