@@ -3537,8 +3537,7 @@ function scPrint() {
     const result = h[field]; const count = h[shots];
     if (result === null) return blankDiag;
     const tickCol = result ? '#1a7a40' : '#c0392b';
-    const bg      = result ? '#e6f5ec' : '#fbeae8';
-    return `<td style="position:relative;padding:0;width:26px;height:26px;overflow:hidden;background:${bg}">
+    return `<td style="position:relative;padding:0;width:26px;height:26px;overflow:hidden;background:#fff">
       <span style="position:absolute;top:1px;left:2px;font-size:7px;font-weight:700;color:#333">${count||''}</span>
       <span style="position:absolute;bottom:1px;right:2px;font-size:10px;font-weight:900;color:${tickCol}">${result?'✓':'✗'}</span>
       <span style="position:absolute;inset:0;background:${diag};pointer-events:none"></span>
@@ -3548,8 +3547,7 @@ function scPrint() {
   const diagRow1 = (h) => {
     const hasMiss = h.missLen !== ''; const hasProx = h.prox !== '';
     if (!hasMiss && !hasProx) return blankDiag;
-    const bg = hasMiss ? '#fbeae8' : '';
-    return `<td style="position:relative;padding:0;width:26px;height:26px;overflow:hidden;${bg?'background:'+bg:''}">
+    return `<td style="position:relative;padding:0;width:26px;height:26px;overflow:hidden;background:#fff">
       <span style="position:absolute;top:1px;left:2px;font-size:7px;font-weight:700;color:#333">${hasProx?h.prox+"'":''}&#8203;</span>
       <span style="position:absolute;bottom:1px;right:2px;font-size:7px;font-weight:900;color:#c0392b">${hasMiss?h.missLen+"✗":''}</span>
       <span style="position:absolute;inset:0;background:${diag};pointer-events:none"></span>
