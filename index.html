@@ -3526,119 +3526,215 @@ function scPrint() {
   const m = scData.meta;
   const fmtDate = d => { if (!d) return ''; try { const [y,mo,dy]=d.split('-'); return `${dy}/${mo}/${y}`; } catch(e){return d;} };
   const holes = scData.holes;
+  const front = holes.slice(0,9);
+  const back  = holes.slice(9);
 
-  // Re-build table HTML inline (same logic as scShowSummary)
-  const metaLine = [
-    m.course||'', m.date?fmtDate(m.date):'', m.tee?'Tee: '+m.tee:'', m.scoreVsPar?'Score: '+m.scoreVsPar:''
-  ].filter(Boolean).join('  ·  ');
+  // ── Shared cell helpers ──────────────────────────────────────────
+  const diag = `linear-gradient(to bottom right,transparent calc(50% - 0.5px),#aaa calc(50% - 0.5px),#aaa calc(50% + 0.5px),transparent calc(50% + 0.5px))`;
+  const blankDiag = `<td style="position:relative;padding:0;width:26px;height:26px;overflow:hidden"><span style="position:absolute;inset:0;background:${diag}"></span></td>`;
 
   const diagAB = (h, field, shots) => {
     const result = h[field]; const count = h[shots];
-    if (result === null) return `<td style="text-align:center">—</td>`;
+    if (result === null) return blankDiag;
     const tickCol = result ? '#1a7a40' : '#c0392b';
-    const bgCol   = result ? '#e6f5ec' : '#fbeae8';
-    return `<td style="background:${bgCol};position:relative;padding:0;min-width:28px;height:28px;overflow:hidden">
-      <span style="position:absolute;top:1px;left:2px;font-size:9px;font-weight:700">${count||''}</span>
-      <span style="position:absolute;bottom:1px;right:2px;font-size:11px;font-weight:800;color:${tickCol}">${result?'✓':'✗'}</span>
-      <span style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to bottom right,transparent calc(50% - 0.5px),#999 calc(50% - 0.5px),#999 calc(50% + 0.5px),transparent calc(50% + 0.5px));pointer-events:none"></span>
+    const bg      = result ? '#e6f5ec' : '#fbeae8';
+    return `<td style="position:relative;padding:0;width:26px;height:26px;overflow:hidden;background:${bg}">
+      <span style="position:absolute;top:1px;left:2px;font-size:7px;font-weight:700;color:#333">${count||''}</span>
+      <span style="position:absolute;bottom:1px;right:2px;font-size:10px;font-weight:900;color:${tickCol}">${result?'✓':'✗'}</span>
+      <span style="position:absolute;inset:0;background:${diag};pointer-events:none"></span>
     </td>`;
   };
+
   const diagRow1 = (h) => {
     const hasMiss = h.missLen !== ''; const hasProx = h.prox !== '';
-    if (!hasMiss && !hasProx) return `<td style="text-align:center">—</td>`;
-    return `<td style="background:${hasMiss?'#fbeae8':''};position:relative;padding:0;min-width:28px;height:28px;overflow:hidden">
-      <span style="position:absolute;top:1px;left:2px;font-size:9px;font-weight:700;color:#333">${hasProx?h.prox+"'":''}
-      </span><span style="position:absolute;bottom:1px;right:2px;font-size:9px;font-weight:800;color:#c0392b">${hasMiss?h.missLen+"'✗":''}</span>
-      <span style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to bottom right,transparent calc(50% - 0.5px),#999 calc(50% - 0.5px),#999 calc(50% + 0.5px),transparent calc(50% + 0.5px));pointer-events:none"></span>
+    if (!hasMiss && !hasProx) return blankDiag;
+    const bg = hasMiss ? '#fbeae8' : '';
+    return `<td style="position:relative;padding:0;width:26px;height:26px;overflow:hidden;${bg?'background:'+bg:''}">
+      <span style="position:absolute;top:1px;left:2px;font-size:7px;font-weight:700;color:#333">${hasProx?h.prox+"'":''}&#8203;</span>
+      <span style="position:absolute;bottom:1px;right:2px;font-size:7px;font-weight:900;color:#c0392b">${hasMiss?h.missLen+"✗":''}</span>
+      <span style="position:absolute;inset:0;background:${diag};pointer-events:none"></span>
     </td>`;
   };
-  const numCell = (v) => `<td style="text-align:center;font-weight:600">${v!==''?v:'—'}</td>`;
-  const hdrStyle = 'background:#1a3a5c;color:#fff;font-weight:700;font-size:10px;text-align:center;padding:4px 3px';
-  const lblStyle = 'text-align:left;font-weight:700;font-size:9px;white-space:nowrap;background:#f5f5f5;padding:4px 5px';
-  const totStyle = 'text-align:center;background:#e8e8e8;font-weight:700';
-  const front = holes.slice(0,9); const back = holes.slice(9);
-  const countTickH  = arr => arr.filter(h=>h.rowA===true).length+'/'+arr.filter(h=>h.rowA!==null).length;
-  const countTickHB = arr => arr.filter(h=>h.rowB===true).length+'/'+arr.filter(h=>h.rowB!==null).length;
-  const sumC = arr => arr.reduce((a,h)=>{
-    const sv = h.shotsToZone!==''?parseInt(h.shotsToZone):0;
-    const sh = h.shotsToHole!==''?parseInt(h.shotsToHole):0;
-    return a+(sv||0)+(sh||0);
-  },0);
 
-  const tableHTML = `
-    <table style="width:100%;border-collapse:collapse;font-size:10px">
-      ${metaLine?`<tr><th colspan="21" style="${hdrStyle};text-align:left;font-size:11px">${metaLine}</th></tr>`:''}
-      <tr>
-        <th style="${hdrStyle};text-align:left">HOLE</th>
-        ${[1,2,3,4,5,6,7,8,9].map(n=>`<th style="${hdrStyle}">${n}</th>`).join('')}
-        <th style="${hdrStyle}">FRONT</th>
-        ${[10,11,12,13,14,15,16,17,18].map(n=>`<th style="${hdrStyle}">${n}</th>`).join('')}
-        <th style="${hdrStyle}">BACK</th>
-      </tr>
-      <tr>
-        <td style="${lblStyle}">PAR</td>
-        ${front.map(h=>`<td style="text-align:center;background:#f0f4ff">${h.par||'—'}</td>`).join('')}
-        <td style="${totStyle}"></td>
-        ${back.map(h=>`<td style="text-align:center;background:#f0f4ff">${h.par||'—'}</td>`).join('')}
-        <td style="${totStyle}"></td>
-      </tr>
-      <tr>
-        <td style="${lblStyle}">A — Entering zone</td>
-        ${front.map(h=>diagAB(h,'rowA','shotsToZone')).join('')}
-        <td style="${totStyle}">${countTickH(front)}</td>
-        ${back.map(h=>diagAB(h,'rowA','shotsToZone')).join('')}
-        <td style="${totStyle}">${countTickH(back)}</td>
-      </tr>
-      <tr>
-        <td style="${lblStyle}">B — Down in zone</td>
-        ${front.map(h=>diagAB(h,'rowB','shotsToHole')).join('')}
-        <td style="${totStyle}">${countTickHB(front)}</td>
-        ${back.map(h=>diagAB(h,'rowB','shotsToHole')).join('')}
-        <td style="${totStyle}">${countTickHB(back)}</td>
-      </tr>
-      <tr style="background:#eef4fb">
-        <td style="${lblStyle}">C — Score (A+B)</td>
-        ${front.map(h=>{const v=(h.shotsToZone!==''?parseInt(h.shotsToZone)||0:0)+(h.shotsToHole!==''?parseInt(h.shotsToHole)||0:0); return h.shotsToZone===''&&h.shotsToHole===''?`<td style="text-align:center">—</td>`:`<td style="text-align:center;font-weight:700">${v}</td>`;}).join('')}
-        <td style="${totStyle}">${sumC(front)}</td>
-        ${back.map(h=>{const v=(h.shotsToZone!==''?parseInt(h.shotsToZone)||0:0)+(h.shotsToHole!==''?parseInt(h.shotsToHole)||0:0); return h.shotsToZone===''&&h.shotsToHole===''?`<td style="text-align:center">—</td>`:`<td style="text-align:center;font-weight:700">${v}</td>`;}).join('')}
-        <td style="${totStyle}">${sumC(back)}</td>
-      </tr>
-      <tr>
-        <td style="${lblStyle}">1 — Miss✗(ft)/Prox</td>
-        ${front.map(h=>diagRow1(h)).join('')}
-        <td style="${totStyle}">${front.filter(h=>h.missLen!=='').length||'—'}</td>
-        ${back.map(h=>diagRow1(h)).join('')}
-        <td style="${totStyle}">${back.filter(h=>h.missLen!=='').length||'—'}</td>
-      </tr>
-      <tr>
-        <td style="${lblStyle}">2 — Total putts</td>
-        ${front.map(h=>numCell(h.totalPutts)).join('')}
-        <td style="${totStyle}">${front.filter(h=>h.totalPutts!=='').reduce((a,h)=>a+(parseInt(h.totalPutts)||0),0)||'—'}</td>
-        ${back.map(h=>numCell(h.totalPutts)).join('')}
-        <td style="${totStyle}">${back.filter(h=>h.totalPutts!=='').reduce((a,h)=>a+(parseInt(h.totalPutts)||0),0)||'—'}</td>
-      </tr>
-    </table>
-  `;
+  const numCell = (v,bg='') => `<td style="text-align:center;font-weight:600;${bg?'background:'+bg+';':''}">${v!==''?v:''}</td>`;
+
+  // ── Totals ───────────────────────────────────────────────────────
+  const ticksA  = arr => arr.filter(h=>h.rowA===true).length;
+  const crossesA= arr => arr.filter(h=>h.rowA===false).length;
+  const ticksB  = arr => arr.filter(h=>h.rowB===true).length;
+  const crossesB= arr => arr.filter(h=>h.rowB===false).length;
+  const sumC    = arr => arr.reduce((a,h)=>{
+    const sv=h.shotsToZone!==''?parseInt(h.shotsToZone)||0:0;
+    const sh=h.shotsToHole!==''?parseInt(h.shotsToHole)||0:0;
+    return a+sv+sh;
+  },0);
+  const missesRow1 = arr => arr.filter(h=>h.missLen!=='').length;
+  const sumPutts   = arr => arr.filter(h=>h.totalPutts!=='').reduce((a,h)=>a+(parseInt(h.totalPutts)||0),0);
+  const cVal = h => { const sv=h.shotsToZone!==''?parseInt(h.shotsToZone)||0:0; const sh=h.shotsToHole!==''?parseInt(h.shotsToHole)||0:0; return (sv||sh) ? sv+sh : ''; };
+
+  // ── Styles ───────────────────────────────────────────────────────
+  const H  = 'background:#222;color:#fff;font-weight:800;font-size:9px;text-align:center;padding:3px 2px;letter-spacing:.03em';
+  const HL = H+';text-align:left;padding:3px 5px';
+  const LBL= 'background:#e8e8e8;font-weight:800;font-size:8px;text-align:left;padding:3px 5px;white-space:nowrap';
+  const LBLR='background:#e8e8e8;font-weight:800;font-size:8px;text-align:center;padding:3px 5px;white-space:nowrap';
+  const TOT= 'background:#ccc;font-weight:800;font-size:9px;text-align:center;padding:3px 2px';
+  const PAR= 'background:#dde4f0;text-align:center;font-weight:700;font-size:9px';
+  const C  = 'background:#ddeeff;text-align:center;font-weight:700;font-size:9px';
+  const P2 = 'text-align:center;font-size:9px';
+
+  // ── SUCCESSES / FEEDBACK tables ──────────────────────────────────
+  const sfRow = (row,label,fF,fB,fT,fb) => `
+    <tr>
+      <td style="background:${row==='A'||row==='B'?'#e8e8e8':'#f5f5f5'};font-weight:700;font-size:8px;text-align:center;width:16px;padding:2px">${row}</td>
+      <td style="font-size:8px;padding:2px 4px">${label}</td>
+      <td style="text-align:center;font-size:9px;font-weight:700;width:28px;border:1px solid #ccc">${fF}</td>
+      <td style="text-align:center;font-size:8px;width:12px">+</td>
+      <td style="text-align:center;font-size:9px;font-weight:700;width:28px;border:1px solid #ccc">${fB}</td>
+      <td style="text-align:center;font-size:8px;width:12px">=</td>
+      <td style="text-align:center;font-size:9px;font-weight:700;width:36px;border:1px solid #ccc;${fb?'background:#ddeeff':''}">${fT}</td>
+    </tr>`;
+
+  const succHTML = `
+    <table style="border-collapse:collapse;width:100%">
+      <tr><th colspan="7" style="font-size:9px;font-weight:800;letter-spacing:.08em;text-align:left;padding:3px 0;border-bottom:1px solid #333">SUCCESSES — # OF ✓S</th></tr>
+      <tr style="font-size:7px;color:#666"><td></td><td></td><td style="text-align:center">FRONT</td><td></td><td style="text-align:center">BACK</td><td></td><td style="text-align:center">TOTAL</td></tr>
+      ${sfRow('A','ENTER SCORING ZONE',ticksA(front),ticksA(back),ticksA(holes))}
+      ${sfRow('B','DOWN IN 3',ticksB(front),ticksB(back),ticksB(holes))}
+      ${sfRow('1','PUTTS MADE &lt;4\'',missesRow1(front),missesRow1(back),missesRow1(holes))}
+      ${sfRow('2','TOTAL PUTTS',sumPutts(front)||'',sumPutts(back)||'',sumPutts(holes)||'',true)}
+    </table>`;
+
+  const feedHTML = `
+    <table style="border-collapse:collapse;width:100%">
+      <tr><th colspan="7" style="font-size:9px;font-weight:800;letter-spacing:.08em;text-align:left;padding:3px 0;border-bottom:1px solid #333">FEEDBACK — # OF ✗S</th></tr>
+      <tr style="font-size:7px;color:#666"><td></td><td></td><td style="text-align:center">FRONT</td><td></td><td style="text-align:center">BACK</td><td></td><td style="text-align:center">TOTAL PP</td></tr>
+      ${sfRow('A','NOT IN SCORING ZONE',crossesA(front),crossesA(back),crossesA(holes))}
+      ${sfRow('B','DID NOT GET DOWN IN 3',crossesB(front),crossesB(back),crossesB(holes))}
+      ${sfRow('1','PUTTS MISSED &lt;4\'',missesRow1(front),missesRow1(back),missesRow1(holes))}
+      ${sfRow('2','TOTAL 3+ PUTTS','','','',true)}
+    </table>`;
+
+  // ── Main scorecard table ─────────────────────────────────────────
+  const scoreTable = `
+  <table style="width:100%;border-collapse:collapse;font-size:9px;table-layout:fixed">
+    <!-- Header: NAME COURSE DATE TEE -->
+    <tr>
+      <td colspan="2" style="font-size:7px;font-weight:800;letter-spacing:.05em;padding:2px 3px;border:1px solid #aaa">ROW</td>
+      <td colspan="2" style="font-size:8px;padding:2px 4px;border:1px solid #aaa"><span style="font-size:7px;font-weight:700;letter-spacing:.05em">NAME</span> ${m.name||'_______________________'}</td>
+      <td colspan="6" style="font-size:8px;padding:2px 4px;border:1px solid #aaa"><span style="font-size:7px;font-weight:700;letter-spacing:.05em">COURSE</span> ${m.course||'_______________________'}</td>
+      <td colspan="4" style="font-size:8px;padding:2px 4px;border:1px solid #aaa"><span style="font-size:7px;font-weight:700;letter-spacing:.05em">DATE</span> ${m.date?fmtDate(m.date):'__________'}</td>
+      <td colspan="3" style="font-size:8px;padding:2px 4px;border:1px solid #aaa"><span style="font-size:7px;font-weight:700;letter-spacing:.05em">TEE</span> ${m.tee||'______'}</td>
+      <td colspan="3" style="font-size:8px;padding:2px 4px;border:1px solid #aaa"><span style="font-size:7px;font-weight:700;letter-spacing:.05em">SCORE</span> ${m.scoreVsPar||'______'}</td>
+    </tr>
+    <!-- Hole number row -->
+    <tr>
+      <th colspan="2" style="${HL}">HOLE / PAR</th>
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<th style="${H}">${n}</th>`).join('')}
+      <th style="${H}">FRONT</th><th style="${H}">#✓</th><th style="${H}">#✗</th>
+      ${[10,11,12,13,14,15,16,17,18].map(n=>`<th style="${H}">${n}</th>`).join('')}
+      <th style="${H}">BACK</th><th style="${H}">#✓</th><th style="${H}">#✗</th>
+      <th style="${H}">ROW</th>
+    </tr>
+    <!-- PAR row -->
+    <tr>
+      <td colspan="2" style="${LBL}">PAR</td>
+      ${front.map(h=>`<td style="${PAR}">${h.par||''}</td>`).join('')}
+      <td style="${TOT}"></td><td style="${TOT}"></td><td style="${TOT}"></td>
+      ${back.map(h=>`<td style="${PAR}">${h.par||''}</td>`).join('')}
+      <td style="${TOT}"></td><td style="${TOT}"></td><td style="${TOT}"></td>
+      <td style="${LBLR}"></td>
+    </tr>
+    <!-- Row A -->
+    <tr>
+      <td colspan="2" style="${LBL}">A — ENTERING<br>SCORING ZONE</td>
+      ${front.map(h=>diagAB(h,'rowA','shotsToZone')).join('')}
+      <td style="${TOT}">${sumC(front)?sumC(front):''}</td>
+      <td style="${TOT}">${ticksA(front)||''}</td>
+      <td style="${TOT}">${crossesA(front)||''}</td>
+      ${back.map(h=>diagAB(h,'rowA','shotsToZone')).join('')}
+      <td style="${TOT}">${sumC(back)?sumC(back):''}</td>
+      <td style="${TOT}">${ticksA(back)||''}</td>
+      <td style="${TOT}">${crossesA(back)||''}</td>
+      <td style="${LBLR}">A</td>
+    </tr>
+    <!-- Row B -->
+    <tr>
+      <td colspan="2" style="${LBL}">B — DOWN IN<br>SCORING ZONE</td>
+      ${front.map(h=>diagAB(h,'rowB','shotsToHole')).join('')}
+      <td style="${TOT}"></td>
+      <td style="${TOT}">${ticksB(front)||''}</td>
+      <td style="${TOT}">${crossesB(front)||''}</td>
+      ${back.map(h=>diagAB(h,'rowB','shotsToHole')).join('')}
+      <td style="${TOT}"></td>
+      <td style="${TOT}">${ticksB(back)||''}</td>
+      <td style="${TOT}">${crossesB(back)||''}</td>
+      <td style="${LBLR}">B</td>
+    </tr>
+    <!-- Row C -->
+    <tr>
+      <td colspan="2" style="${LBL}">C — SCORE<br>(A+B=C)</td>
+      ${front.map(h=>`<td style="${C}">${cVal(h)}</td>`).join('')}
+      <td style="${TOT};background:#b8d4ee">${sumC(front)||''}</td>
+      <td style="${TOT}"></td><td style="${TOT}"></td>
+      ${back.map(h=>`<td style="${C}">${cVal(h)}</td>`).join('')}
+      <td style="${TOT};background:#b8d4ee">${sumC(back)||''}</td>
+      <td style="${TOT}"></td><td style="${TOT}"></td>
+      <td style="${LBLR}">C</td>
+    </tr>
+    <!-- Row 1 -->
+    <tr>
+      <td colspan="2" style="${LBL}">1 — PUTTS<br>MISSED &lt;4' · PROX</td>
+      ${front.map(h=>diagRow1(h)).join('')}
+      <td style="${TOT}">${missesRow1(front)||''}</td>
+      <td style="${TOT}"></td><td style="${TOT}"></td>
+      ${back.map(h=>diagRow1(h)).join('')}
+      <td style="${TOT}">${missesRow1(back)||''}</td>
+      <td style="${TOT}"></td><td style="${TOT}"></td>
+      <td style="${LBLR}">1</td>
+    </tr>
+    <!-- Row 2 -->
+    <tr>
+      <td colspan="2" style="${LBL}">2 — TOTAL<br>PUTTS</td>
+      ${front.map(h=>numCell(h.totalPutts)).join('')}
+      <td style="${TOT}">${sumPutts(front)||''}</td>
+      <td style="${TOT}"></td><td style="${TOT}"></td>
+      ${back.map(h=>numCell(h.totalPutts)).join('')}
+      <td style="${TOT}">${sumPutts(back)||''}</td>
+      <td style="${TOT}"></td><td style="${TOT}"></td>
+      <td style="${LBLR}">2</td>
+    </tr>
+  </table>`;
 
   const printHTML = `<!DOCTYPE html><html><head><meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>TSM Scorecard${m.course?' — '+m.course:''}</title>
-    <style>
-      body { font-family: -apple-system, sans-serif; padding: 12px; background: #fff; }
-      table { border-collapse: collapse; width: 100%; }
-      td, th { border: 1px solid #ccc; }
-      @page { size: landscape; margin: 8mm; }
-      @media print { body { padding: 0; } }
-    </style>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TSM Scorecard${m.course?' — '+m.course:''}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, Arial, sans-serif; padding: 8px; background: #fff; color: #000; }
+    table { border-collapse: collapse; }
+    td, th { border: 1px solid #bbb; }
+    .sf-wrap { display: flex; gap: 16px; margin-top: 10px; }
+    .sf-wrap > div { flex: 1; }
+    .hint { font-size: 10px; color: #888; margin-top: 10px; text-align: center; }
+    @page { size: landscape; margin: 6mm; }
+    @media print { body { padding: 0; } .hint { display: none; } }
+  </style>
   </head><body>
-    <h2 style="font-size:14px;margin:0 0 8px">TSM Scorecard${m.name?' — '+m.name:''}</h2>
-    ${tableHTML}
-    <p style="font-size:10px;color:#888;margin-top:8px">Tap the share button (□↑) then "Print" to save as PDF</p>
+    ${scoreTable}
+    <div class="sf-wrap">
+      <div>${succHTML}</div>
+      <div>${feedHTML}</div>
+    </div>
+    <p class="hint">Tap share (□↑) → Print → pinch preview → share again → Save to Files</p>
   </body></html>`;
 
+  // In iOS standalone/PWA mode window.open is blocked — navigate current window instead
   const blob = new Blob([printHTML], {type:'text/html'});
   const url  = URL.createObjectURL(blob);
-  window.open(url, '_blank');
+  const newWin = window.open(url, '_blank');
+  if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
+    location.href = url;
+  }
 }
 
 // New round — clears scorecard data
