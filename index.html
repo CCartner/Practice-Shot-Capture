@@ -3531,7 +3531,7 @@ function scPrint() {
 
   // ── Shared cell helpers ──────────────────────────────────────────
   const diag = `linear-gradient(to bottom right,transparent calc(50% - 0.5px),#aaa calc(50% - 0.5px),#aaa calc(50% + 0.5px),transparent calc(50% + 0.5px))`;
-  const blankDiag = `<td style="position:relative;padding:0;width:26px;height:26px;overflow:hidden"><span style="position:absolute;inset:0;background:${diag}"></span></td>`;
+  const blankDiag = `<td style="position:relative;padding:0;width:26px;height:26px;overflow:hidden;background:#fff"><span style="position:absolute;inset:0;background:${diag}"></span></td>`;
 
   const diagAB = (h, field, shots) => {
     const result = h[field]; const count = h[shots];
@@ -3616,7 +3616,7 @@ function scPrint() {
 
   // ── Main scorecard table ─────────────────────────────────────────
   const scoreTable = `
-  <table style="width:100%;border-collapse:collapse;font-size:9px;table-layout:fixed">
+  <table style="width:100%;border-collapse:collapse;font-size:9px">
     <!-- Header: NAME COURSE DATE TEE -->
     <tr>
       <td colspan="2" style="font-size:7px;font-weight:800;letter-spacing:.05em;padding:2px 3px;border:1px solid #aaa">ROW</td>
@@ -3633,7 +3633,6 @@ function scPrint() {
       <th style="${H}">FRONT</th><th style="${H}">#✓</th><th style="${H}">#✗</th>
       ${[10,11,12,13,14,15,16,17,18].map(n=>`<th style="${H}">${n}</th>`).join('')}
       <th style="${H}">BACK</th><th style="${H}">#✓</th><th style="${H}">#✗</th>
-      <th style="${H}">ROW</th>
     </tr>
     <!-- PAR row -->
     <tr>
@@ -3642,7 +3641,6 @@ function scPrint() {
       <td style="${TOT}"></td><td style="${TOT}"></td><td style="${TOT}"></td>
       ${back.map(h=>`<td style="${PAR}">${h.par||''}</td>`).join('')}
       <td style="${TOT}"></td><td style="${TOT}"></td><td style="${TOT}"></td>
-      <td style="${LBLR}"></td>
     </tr>
     <!-- Row A -->
     <tr>
@@ -3655,7 +3653,6 @@ function scPrint() {
       <td style="${TOT}">${sumC(back)?sumC(back):''}</td>
       <td style="${TOT}">${ticksA(back)||''}</td>
       <td style="${TOT}">${crossesA(back)||''}</td>
-      <td style="${LBLR}">A</td>
     </tr>
     <!-- Row B -->
     <tr>
@@ -3668,7 +3665,6 @@ function scPrint() {
       <td style="${TOT}"></td>
       <td style="${TOT}">${ticksB(back)||''}</td>
       <td style="${TOT}">${crossesB(back)||''}</td>
-      <td style="${LBLR}">B</td>
     </tr>
     <!-- Row C -->
     <tr>
@@ -3679,7 +3675,6 @@ function scPrint() {
       ${back.map(h=>`<td style="${C}">${cVal(h)}</td>`).join('')}
       <td style="${TOT};background:#b8d4ee">${sumC(back)||''}</td>
       <td style="${TOT}"></td><td style="${TOT}"></td>
-      <td style="${LBLR}">C</td>
     </tr>
     <!-- Row 1 -->
     <tr>
@@ -3690,7 +3685,6 @@ function scPrint() {
       ${back.map(h=>diagRow1(h)).join('')}
       <td style="${TOT}">${missesRow1(back)||''}</td>
       <td style="${TOT}"></td><td style="${TOT}"></td>
-      <td style="${LBLR}">1</td>
     </tr>
     <!-- Row 2 -->
     <tr>
@@ -3701,23 +3695,23 @@ function scPrint() {
       ${back.map(h=>numCell(h.totalPutts)).join('')}
       <td style="${TOT}">${sumPutts(back)||''}</td>
       <td style="${TOT}"></td><td style="${TOT}"></td>
-      <td style="${LBLR}">2</td>
     </tr>
   </table>`;
 
   const printHTML = `<!DOCTYPE html><html><head><meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=1100,initial-scale=1">
   <title>TSM Scorecard${m.course?' — '+m.course:''}</title>
   <style>
     * { box-sizing: border-box; }
-    body { font-family: -apple-system, Arial, sans-serif; padding: 8px; background: #fff; color: #000; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: -apple-system, Arial, sans-serif; padding: 8px; background: #fff; color: #000; min-width: 1050px; }
     table { border-collapse: collapse; }
     td, th { border: 1px solid #bbb; }
     .sf-wrap { display: flex; gap: 16px; margin-top: 10px; }
     .sf-wrap > div { flex: 1; }
     .hint { font-size: 10px; color: #888; margin-top: 10px; text-align: center; }
     @page { size: landscape; margin: 6mm; }
-    @media print { body { padding: 0; } .hint { display: none; } }
+    @media print { body { padding: 0; min-width: 0; } .hint { display: none; } }
   </style>
   </head><body>
     ${scoreTable}
