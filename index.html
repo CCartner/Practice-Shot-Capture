@@ -3143,7 +3143,7 @@ function scRenderHole() {
         <div class="sc-num-row" style="width:100%">
           <div class="sc-num-block">
             <label>Miss &lt;4ft — enter x or length (ft)</label>
-            <input class="sc-num-input" type="text" id="sc-miss-len" value="${h.missLen}" placeholder="x or 3" inputmode="decimal" autocorrect="off" autocapitalize="none"
+            <input class="sc-num-input" type="text" id="sc-miss-len" value="${h.missLen}" placeholder="x or 3" inputmode="text" autocorrect="off" autocapitalize="none" spellcheck="false"
               oninput="scLiveMiss()">
           </div>
           <div class="sc-num-block">
@@ -3563,11 +3563,9 @@ function scPrint() {
   const crossesA= arr => arr.filter(h=>h.rowA===false).length;
   const ticksB  = arr => arr.filter(h=>h.rowB===true).length;
   const crossesB= arr => arr.filter(h=>h.rowB===false).length;
-  const sumC    = arr => arr.reduce((a,h)=>{
-    const sv=h.shotsToZone!==''?parseInt(h.shotsToZone)||0:0;
-    const sh=h.shotsToHole!==''?parseInt(h.shotsToHole)||0:0;
-    return a+sv+sh;
-  },0);
+  const sumA    = arr => arr.reduce((a,h)=>a+(h.shotsToZone!==''?parseInt(h.shotsToZone)||0:0),0);
+  const sumB    = arr => arr.reduce((a,h)=>a+(h.shotsToHole!==''?parseInt(h.shotsToHole)||0:0),0);
+  const sumC    = arr => sumA(arr) + sumB(arr);
   const missesRow1 = arr => arr.filter(h=>h.missLen!=='').length;
   const sumPutts   = arr => arr.filter(h=>h.totalPutts!=='').reduce((a,h)=>a+(parseInt(h.totalPutts)||0),0);
   const cVal = h => { const sv=h.shotsToZone!==''?parseInt(h.shotsToZone)||0:0; const sh=h.shotsToHole!==''?parseInt(h.shotsToHole)||0:0; return (sv||sh) ? sv+sh : ''; };
@@ -3646,11 +3644,11 @@ function scPrint() {
     <tr>
       <td colspan="2" style="${LBL}">A — ENTERING<br>SCORING ZONE</td>
       ${front.map(h=>diagAB(h,'rowA','shotsToZone')).join('')}
-      <td style="${TOT}">${sumC(front)?sumC(front):''}</td>
+      <td style="${TOT}">${sumA(front)||''}</td>
       <td style="${TOT}">${ticksA(front)||''}</td>
       <td style="${TOT}">${crossesA(front)||''}</td>
       ${back.map(h=>diagAB(h,'rowA','shotsToZone')).join('')}
-      <td style="${TOT}">${sumC(back)?sumC(back):''}</td>
+      <td style="${TOT}">${sumA(back)||''}</td>
       <td style="${TOT}">${ticksA(back)||''}</td>
       <td style="${TOT}">${crossesA(back)||''}</td>
     </tr>
@@ -3658,11 +3656,11 @@ function scPrint() {
     <tr>
       <td colspan="2" style="${LBL}">B — DOWN IN<br>SCORING ZONE</td>
       ${front.map(h=>diagAB(h,'rowB','shotsToHole')).join('')}
-      <td style="${TOT}"></td>
+      <td style="${TOT}">${sumB(front)||''}</td>
       <td style="${TOT}">${ticksB(front)||''}</td>
       <td style="${TOT}">${crossesB(front)||''}</td>
       ${back.map(h=>diagAB(h,'rowB','shotsToHole')).join('')}
-      <td style="${TOT}"></td>
+      <td style="${TOT}">${sumB(back)||''}</td>
       <td style="${TOT}">${ticksB(back)||''}</td>
       <td style="${TOT}">${crossesB(back)||''}</td>
     </tr>
@@ -3702,7 +3700,7 @@ function scPrint() {
   <meta name="viewport" content="width=1100,initial-scale=1">
   <title>TSM Scorecard${m.course?' — '+m.course:''}</title>
   <style>
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
     html { -webkit-text-size-adjust: 100%; }
     body { font-family: -apple-system, Arial, sans-serif; padding: 8px; background: #fff; color: #000; min-width: 1050px; }
     table { border-collapse: collapse; }
