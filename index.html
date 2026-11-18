@@ -545,8 +545,10 @@
   @media print {
     .app > div:not(#s-scoring) { display: none !important; }
     #s-scoring { display: block !important; }
-    .topbar, .sc-hole-entry, .sc-hole-nav, .sc-hole-actions, .sc-progress, .sc-back-btn, .sc-hole-scroll .sc-hole-entry { display: none !important; }
+    .topbar, .sc-hole-view, .sc-back-btn { display: none !important; }
+    #sc-summary-view { display: block !important; }
     .sc-summary-wrap { padding: 0; }
+    .sc-btn, .sc-feedback-section, .sc-keys-section, .sc-notes-section { display: none !important; }
     @page { size: landscape; margin: 8mm; }
   }
 </style>
@@ -3520,7 +3522,123 @@ function scPrint() {
   scSaveHoleLive();
   scData.notes = document.getElementById('sc-notes-ta')?.value || '';
   scSaveStorage();
-  window.print();
+
+  const m = scData.meta;
+  const fmtDate = d => { if (!d) return ''; try { const [y,mo,dy]=d.split('-'); return `${dy}/${mo}/${y}`; } catch(e){return d;} };
+  const holes = scData.holes;
+
+  // Re-build table HTML inline (same logic as scShowSummary)
+  const metaLine = [
+    m.course||'', m.date?fmtDate(m.date):'', m.tee?'Tee: '+m.tee:'', m.scoreVsPar?'Score: '+m.scoreVsPar:''
+  ].filter(Boolean).join('  ·  ');
+
+  const diagAB = (h, field, shots) => {
+    const result = h[field]; const count = h[shots];
+    if (result === null) return `<td style="text-align:center">—</td>`;
+    const tickCol = result ? '#1a7a40' : '#c0392b';
+    const bgCol   = result ? '#e6f5ec' : '#fbeae8';
+    return `<td style="background:${bgCol};position:relative;padding:0;min-width:28px;height:28px;overflow:hidden">
+      <span style="position:absolute;top:1px;left:2px;font-size:9px;font-weight:700">${count||''}</span>
+      <span style="position:absolute;bottom:1px;right:2px;font-size:11px;font-weight:800;color:${tickCol}">${result?'✓':'✗'}</span>
+      <span style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to bottom right,transparent calc(50% - 0.5px),#999 calc(50% - 0.5px),#999 calc(50% + 0.5px),transparent calc(50% + 0.5px));pointer-events:none"></span>
+    </td>`;
+  };
+  const diagRow1 = (h) => {
+    const hasMiss = h.missLen !== ''; const hasProx = h.prox !== '';
+    if (!hasMiss && !hasProx) return `<td style="text-align:center">—</td>`;
+    return `<td style="background:${hasMiss?'#fbeae8':''};position:relative;padding:0;min-width:28px;height:28px;overflow:hidden">
+      <span style="position:absolute;top:1px;left:2px;font-size:9px;font-weight:700;color:#333">${hasProx?h.prox+"'":''}
+      </span><span style="position:absolute;bottom:1px;right:2px;font-size:9px;font-weight:800;color:#c0392b">${hasMiss?h.missLen+"'✗":''}</span>
+      <span style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to bottom right,transparent calc(50% - 0.5px),#999 calc(50% - 0.5px),#999 calc(50% + 0.5px),transparent calc(50% + 0.5px));pointer-events:none"></span>
+    </td>`;
+  };
+  const numCell = (v) => `<td style="text-align:center;font-weight:600">${v!==''?v:'—'}</td>`;
+  const hdrStyle = 'background:#1a3a5c;color:#fff;font-weight:700;font-size:10px;text-align:center;padding:4px 3px';
+  const lblStyle = 'text-align:left;font-weight:700;font-size:9px;white-space:nowrap;background:#f5f5f5;padding:4px 5px';
+  const totStyle = 'text-align:center;background:#e8e8e8;font-weight:700';
+  const front = holes.slice(0,9); const back = holes.slice(9);
+  const countTickH  = arr => arr.filter(h=>h.rowA===true).length+'/'+arr.filter(h=>h.rowA!==null).length;
+  const countTickHB = arr => arr.filter(h=>h.rowB===true).length+'/'+arr.filter(h=>h.rowB!==null).length;
+  const sumC = arr => arr.reduce((a,h)=>{
+    const sv = h.shotsToZone!==''?parseInt(h.shotsToZone):0;
+    const sh = h.shotsToHole!==''?parseInt(h.shotsToHole):0;
+    return a+(sv||0)+(sh||0);
+  },0);
+
+  const tableHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:10px">
+      ${metaLine?`<tr><th colspan="21" style="${hdrStyle};text-align:left;font-size:11px">${metaLine}</th></tr>`:''}
+      <tr>
+        <th style="${hdrStyle};text-align:left">HOLE</th>
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`<th style="${hdrStyle}">${n}</th>`).join('')}
+        <th style="${hdrStyle}">FRONT</th>
+        ${[10,11,12,13,14,15,16,17,18].map(n=>`<th style="${hdrStyle}">${n}</th>`).join('')}
+        <th style="${hdrStyle}">BACK</th>
+      </tr>
+      <tr>
+        <td style="${lblStyle}">PAR</td>
+        ${front.map(h=>`<td style="text-align:center;background:#f0f4ff">${h.par||'—'}</td>`).join('')}
+        <td style="${totStyle}"></td>
+        ${back.map(h=>`<td style="text-align:center;background:#f0f4ff">${h.par||'—'}</td>`).join('')}
+        <td style="${totStyle}"></td>
+      </tr>
+      <tr>
+        <td style="${lblStyle}">A — Entering zone</td>
+        ${front.map(h=>diagAB(h,'rowA','shotsToZone')).join('')}
+        <td style="${totStyle}">${countTickH(front)}</td>
+        ${back.map(h=>diagAB(h,'rowA','shotsToZone')).join('')}
+        <td style="${totStyle}">${countTickH(back)}</td>
+      </tr>
+      <tr>
+        <td style="${lblStyle}">B — Down in zone</td>
+        ${front.map(h=>diagAB(h,'rowB','shotsToHole')).join('')}
+        <td style="${totStyle}">${countTickHB(front)}</td>
+        ${back.map(h=>diagAB(h,'rowB','shotsToHole')).join('')}
+        <td style="${totStyle}">${countTickHB(back)}</td>
+      </tr>
+      <tr style="background:#eef4fb">
+        <td style="${lblStyle}">C — Score (A+B)</td>
+        ${front.map(h=>{const v=(h.shotsToZone!==''?parseInt(h.shotsToZone)||0:0)+(h.shotsToHole!==''?parseInt(h.shotsToHole)||0:0); return h.shotsToZone===''&&h.shotsToHole===''?`<td style="text-align:center">—</td>`:`<td style="text-align:center;font-weight:700">${v}</td>`;}).join('')}
+        <td style="${totStyle}">${sumC(front)}</td>
+        ${back.map(h=>{const v=(h.shotsToZone!==''?parseInt(h.shotsToZone)||0:0)+(h.shotsToHole!==''?parseInt(h.shotsToHole)||0:0); return h.shotsToZone===''&&h.shotsToHole===''?`<td style="text-align:center">—</td>`:`<td style="text-align:center;font-weight:700">${v}</td>`;}).join('')}
+        <td style="${totStyle}">${sumC(back)}</td>
+      </tr>
+      <tr>
+        <td style="${lblStyle}">1 — Miss✗(ft)/Prox</td>
+        ${front.map(h=>diagRow1(h)).join('')}
+        <td style="${totStyle}">${front.filter(h=>h.missLen!=='').length||'—'}</td>
+        ${back.map(h=>diagRow1(h)).join('')}
+        <td style="${totStyle}">${back.filter(h=>h.missLen!=='').length||'—'}</td>
+      </tr>
+      <tr>
+        <td style="${lblStyle}">2 — Total putts</td>
+        ${front.map(h=>numCell(h.totalPutts)).join('')}
+        <td style="${totStyle}">${front.filter(h=>h.totalPutts!=='').reduce((a,h)=>a+(parseInt(h.totalPutts)||0),0)||'—'}</td>
+        ${back.map(h=>numCell(h.totalPutts)).join('')}
+        <td style="${totStyle}">${back.filter(h=>h.totalPutts!=='').reduce((a,h)=>a+(parseInt(h.totalPutts)||0),0)||'—'}</td>
+      </tr>
+    </table>
+  `;
+
+  const printHTML = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>TSM Scorecard${m.course?' — '+m.course:''}</title>
+    <style>
+      body { font-family: -apple-system, sans-serif; padding: 12px; background: #fff; }
+      table { border-collapse: collapse; width: 100%; }
+      td, th { border: 1px solid #ccc; }
+      @page { size: landscape; margin: 8mm; }
+      @media print { body { padding: 0; } }
+    </style>
+  </head><body>
+    <h2 style="font-size:14px;margin:0 0 8px">TSM Scorecard${m.name?' — '+m.name:''}</h2>
+    ${tableHTML}
+    <p style="font-size:10px;color:#888;margin-top:8px">Tap the share button (□↑) then "Print" to save as PDF</p>
+  </body></html>`;
+
+  const blob = new Blob([printHTML], {type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  window.open(url, '_blank');
 }
 
 // New round — clears scorecard data
