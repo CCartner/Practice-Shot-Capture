@@ -2972,7 +2972,7 @@ let scData = {
     totalPutts: '',    // row 2: total putts
   })),
   currentHole: 0,      // 0-indexed
-  keysBroken: Array(10).fill(false),
+  keysBroken: Array(10).fill(null),  // null=not entered; key0 & key3 are auto-computed
   notes: ''
 };
 
@@ -3499,17 +3499,52 @@ function scShowSummary() {
     </div>
   `;
 
-  // 10 Keys
+  // 10 Keys — compute auto values
+  const threePuttCount = scData.holes.filter(h => h.totalPutts !== '' && parseInt(h.totalPutts) >= 3).length;
+
+  // Migrate old boolean keysBroken arrays from previous saves
+  if (scData.keysBroken.some(v => v === true || v === false)) {
+    scData.keysBroken = scData.keysBroken.map(v => v === true ? 1 : null);
+  }
+
   const keysList = document.getElementById('sc-keys-list');
-  keysList.innerHTML = SC_10KEYS.map((key, i) => `
-    <div class="sc-key-item">
+  keysList.innerHTML = SC_10KEYS.map((key, i) => {
+    // Key 1 (index 0): auto from missed short putts
+    if (i === 0) {
+      const autoVal = totalMisses;
+      return `<div class="sc-key-item">
+        <div class="sc-key-num">1</div>
+        <div class="sc-key-text">${key.k}<br><span class="sc-key-soln">${key.s}</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0">
+          <span style="font-size:20px;font-weight:800;color:${autoVal>0?'#c0392b':'#1a7a40'};min-width:32px;text-align:center">${autoVal}</span>
+          <span style="font-size:9px;color:var(--text-3)">auto</span>
+        </div>
+      </div>`;
+    }
+    // Key 4 (index 3): auto from 3-putt count
+    if (i === 3) {
+      const autoVal = threePuttCount;
+      return `<div class="sc-key-item">
+        <div class="sc-key-num">4</div>
+        <div class="sc-key-text">${key.k}<br><span class="sc-key-soln">${key.s}</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0">
+          <span style="font-size:20px;font-weight:800;color:${autoVal>0?'#c0392b':'#1a7a40'};min-width:32px;text-align:center">${autoVal}</span>
+          <span style="font-size:9px;color:var(--text-3)">auto</span>
+        </div>
+      </div>`;
+    }
+    // All others: numeric input
+    const val = scData.keysBroken[i];
+    return `<div class="sc-key-item">
       <div class="sc-key-num">${i+1}</div>
-      <div class="sc-key-text">${key.k}
-        <span class="sc-key-soln">${key.s}</span>
-      </div>
-      <input type="checkbox" class="sc-key-broken" id="sc-key-${i}" ${scData.keysBroken[i]?'checked':''} onchange="scData.keysBroken[${i}]=this.checked;scSaveStorage()" style="width:20px;height:20px;cursor:pointer;">
-    </div>
-  `).join('');
+      <div class="sc-key-text">${key.k}<br><span class="sc-key-soln">${key.s}</span></div>
+      <input type="number" min="0" max="99" inputmode="numeric"
+        style="width:48px;height:36px;font-size:18px;font-weight:700;text-align:center;border:1px solid var(--border-strong);border-radius:6px;background:var(--surface);color:var(--text);flex-shrink:0"
+        placeholder="0"
+        value="${val !== null && val !== undefined ? val : ''}"
+        onchange="scData.keysBroken[${i}]=this.value===''?null:parseInt(this.value)||0;scSaveStorage()">
+    </div>`;
+  }).join('');
 
   // Notes
   document.getElementById('sc-notes-ta').value = scData.notes || '';
@@ -3734,7 +3769,7 @@ function scNewRound() {
     meta: { name: document.getElementById('sc-name')?.value||'', course: document.getElementById('sc-course')?.value||'Bonnie Doon GC', date: new Date().toISOString().split('T')[0], tee:'', scoreVsPar:'' },
     holes: Array.from({length:18}, () => ({ par:null, shotsToZone:'', shotsToHole:'', rowA:null, rowB:null, missLen:'', prox:'', totalPutts:'' })),
     currentHole: 0,
-    keysBroken: Array(10).fill(false),
+    keysBroken: Array(10).fill(null),
     notes: ''
   };
   scSaveStorage();
